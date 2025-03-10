@@ -1,0 +1,43 @@
+nohup: ignoring input
+2025-03-09 15:16:59,009 - api.model_loader - WARNING - 无法从src.train导入BertFakeNewsClassifier，将创建自己的模型类
+2025-03-09 15:16:59,010 - app - INFO - API服务启动
+2025-03-09 15:16:59,010 - app - INFO - 正在加载模型...
+2025-03-09 15:16:59,019 - api.model_loader - INFO - 使用设备: cuda
+2025-03-09 15:16:59,044 - api.model_loader - INFO - 成功从本地路径加载分词器: /home/kssczt/ztb/Gan/fakenews/models/bert_local
+2025-03-09 15:16:59,044 - api.model_loader - INFO - 加载模型: /home/kssczt/ztb/Gan/fakenews/models/fake_news_bert_model_final.pth
+2025-03-09 15:17:19,104 - api.model_loader - ERROR - 加载BERT模型失败: We couldn't connect to 'https://huggingface.co' to load this file, couldn't find it in the cached files and it looks like bert-base-chinese is not the path to a directory containing a file named config.json.
+Checkout your internet connection or see how to run the library in offline mode at 'https://huggingface.co/docs/transformers/installation#offline-mode'.
+2025-03-09 15:17:19,219 - api.model_loader - INFO - 成功从本地加载BERT模型: /home/kssczt/ztb/Gan/fakenews/models/bert_local
+2025-03-09 15:17:22,156 - api.model_loader - INFO - 模型加载成功
+2025-03-09 15:17:22,157 - app - INFO - 模型加载成功
+2025-03-09 15:17:22,158 - app - INFO - 开始启动Web服务...
+服务器正在启动，请访问http://localhost:5000/health进行测试
+ * Serving Flask app 'app'
+ * Debug mode: off
+2025-03-09 15:17:22,159 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://10.203.81.36:5000
+2025-03-09 15:17:22,159 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-03-09 15:18:08,500 - werkzeug - INFO - 10.101.64.214 - - [09/Mar/2025 15:18:08] "[33mGET / HTTP/1.1[0m" 404 -
+2025-03-09 15:18:08,624 - werkzeug - INFO - 10.101.64.214 - - [09/Mar/2025 15:18:08] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-03-09 15:18:16,435 - werkzeug - INFO - 127.0.0.1 - - [09/Mar/2025 15:18:16] "GET /health HTTP/1.1" 200 -
+2025-03-09 15:18:16,439 - app - INFO - 收到预测请求: 北京冬奥会2022年2月4日开幕，中国代表团获得9金4银2铜的成绩。
+Building prefix dict from the default dictionary ...
+2025-03-09 15:18:16,440 - jieba - DEBUG - Building prefix dict from the default dictionary ...
+Loading model from cache /tmp/jieba.cache
+2025-03-09 15:18:16,440 - jieba - DEBUG - Loading model from cache /tmp/jieba.cache
+Loading model cost 0.854 seconds.
+2025-03-09 15:18:17,294 - jieba - DEBUG - Loading model cost 0.854 seconds.
+Prefix dict has been built successfully.
+2025-03-09 15:18:17,294 - jieba - DEBUG - Prefix dict has been built successfully.
+2025-03-09 15:18:17,316 - app - INFO - 预测结果: 虚假新闻 (置信度: 0.5408)
+2025-03-09 15:18:17,317 - werkzeug - INFO - 127.0.0.1 - - [09/Mar/2025 15:18:17] "POST /predict HTTP/1.1" 200 -
+2025-03-09 15:18:17,321 - app - INFO - 收到预测请求: 震惊！某明星深夜现身酒吧，与神秘人密会3小时
+2025-03-09 15:18:17,333 - app - INFO - 预测结果: 虚假新闻 (置信度: 1.0000)
+2025-03-09 15:18:17,334 - werkzeug - INFO - 127.0.0.1 - - [09/Mar/2025 15:18:17] "POST /predict HTTP/1.1" 200 -
+2025-03-09 15:18:17,338 - app - INFO - 收到批量预测请求: 5篇文章
+2025-03-09 15:18:17,389 - app - INFO - 批量预测完成: 5篇文章, 耗时: 0.05秒
+2025-03-09 15:18:17,389 - werkzeug - INFO - 127.0.0.1 - - [09/Mar/2025 15:18:17] "POST /batch_predict HTTP/1.1" 200 -
+2025-03-09 15:18:17,393 - werkzeug - INFO - 127.0.0.1 - - [09/Mar/2025 15:18:17] "[31m[1mPOST /predict HTTP/1.1[0m" 400 -
+2025-03-09 15:18:17,396 - werkzeug - INFO - 127.0.0.1 - - [09/Mar/2025 15:18:17] "[31m[1mPOST /predict HTTP/1.1[0m" 400 -
