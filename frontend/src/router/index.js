@@ -4,6 +4,9 @@ import Home from '../views/Home.vue'
 import SingleDetection from '../views/SingleDetection.vue'
 import BatchDetection from '../views/BatchDetection.vue'
 import About from '../views/About.vue'
+import VideoDetection from '../views/VideoDetection.vue'  // 新增组件导入
+import ImageDetection from '../views/ImageDetection.vue'
+import HybridDetection from '../views/HybridDetection.vue'
 
 Vue.use(VueRouter)
 
@@ -24,14 +27,14 @@ const routes = [
     component: BatchDetection
   },
   {
-    path: '/about',
-    name: 'About',
-    component: About
-  },
-  {
     path: '/image-detection',
     name: 'ImageDetection',
-    component: () => import('../views/ImageDetection.vue')
+    component: ImageDetection  // 修正为已导入的组件
+  },
+  {
+    path: '/hybrid-detection',
+    name: 'HybridDetection',
+    component: HybridDetection  // 修正为已导入的组件
   }
 ]
 

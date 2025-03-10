@@ -1,6 +1,5 @@
 <template>
   <div class="home">
-    <!-- 原有内容保持不变 -->
     <el-row :gutter="20">
       <el-col :span="24">
         <el-card class="welcome-card">
@@ -32,6 +31,34 @@
                   <el-button 
                     type="primary" 
                     @click="$router.push('/image-detection')"
+                  >
+                    开始检测
+                  </el-button>
+                </el-card>
+              </el-col>
+               <!-- 新增混合检测模块 -->
+              <el-col :xs="24" :sm="12" :md="8">
+                <el-card shadow="hover" class="feature-card">
+                  <i class="el-icon-connection"></i>
+                  <h3>混合检测</h3>
+                  <p>通过URL检测多媒体新闻的综合真实性</p>
+                  <el-button 
+                    type="primary" 
+                    @click="$router.push('/hybrid-detection')"
+                  >
+                    开始检测
+                  </el-button>
+                </el-card>
+              </el-col>
+              <!-- 新增视频检测模块 -->
+              <el-col :xs="24" :sm="12" :md="8">
+                <el-card shadow="hover" class="feature-card">
+                  <i class="el-icon-video-camera"></i>
+                  <h3>视频检测</h3>
+                  <p>分析新闻视频的真实性及内容验证</p>
+                  <el-button 
+                    type="primary" 
+                    @click="$router.push('/video-detection')"
                   >
                     开始检测
                   </el-button>
@@ -91,27 +118,12 @@
 </template>
 
 <style scoped>
-/* 原有样式保持不变 */
-.home {
-  max-width: 1200px;
-  margin: 0 auto;
+/* 新增栅格布局适配 */
+.el-col-md-6 {
+  width: 25%;
 }
 
-.welcome-card {
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.welcome-card h1 {
-  font-size: 2rem;
-  color: #409EFF;
-  margin-top: 0;
-}
-
-.features {
-  margin-top: 30px;
-}
-
+/* 保持原有样式不变 */
 .feature-card {
   text-align: center;
   padding: 20px;

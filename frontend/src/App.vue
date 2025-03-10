@@ -11,8 +11,10 @@
             <el-menu-item index="/">首页</el-menu-item>
             <el-menu-item index="/single">单文本检测</el-menu-item>
             <el-menu-item index="/batch">批量检测</el-menu-item>
-            <el-menu-item index="/image-detection">图片检测</el-menu-item>  <!-- 新增菜单项 -->
-            <el-menu-item index="/about">关于系统</el-menu-item>
+            <el-menu-item index="/image-detection">图片检测</el-menu-item>
+            <el-menu-item index="/hybrid-detection">混合检测</el-menu-item>  <!-- 新增混合检测选项 -->
+             <el-menu-item index="/video-detection">视频检测</el-menu-item>  <!-- 新增视频检测入口 -->
+            <el-menu-item index="/about" style="margin-left: auto">关于系统</el-menu-item> 
           </el-menu>
         </div>
       </el-header>
