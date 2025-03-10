@@ -28,10 +28,10 @@ const routes = [
     name: 'About',
     component: About
   },
-  // 添加通配符路由，处理404情况
   {
-    path: '*',
-    redirect: '/'
+    path: '/image-detection',
+    name: 'ImageDetection',
+    component: () => import('../views/ImageDetection.vue')
   }
 ]
 

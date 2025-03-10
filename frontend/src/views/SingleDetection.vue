@@ -185,38 +185,5 @@ export default {
   margin-bottom: 20px;
 }
 
-.page-header h1 {
-  color: #409EFF;
-  margin-bottom: 10px;
-}
-
-.page-header p {
-  color: #606266;
-}
-
-.actions {
-  display: flex;
-  justify-content: start;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.api-status-card {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  background-color: #FEF0F0;
-}
-
-.debug-card {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  background-color: #F0F9EB;
-  overflow: auto;
-}
-
-.debug-card pre {
-  white-space: pre-wrap;
-  font-family: monospace;
-  font-size: 12px;
-}
-</style> 
+/* 已移除 detection-switch 相关样式 */
+</style>

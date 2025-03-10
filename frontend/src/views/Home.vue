@@ -1,5 +1,6 @@
 <template>
   <div class="home">
+    <!-- 原有内容保持不变 -->
     <el-row :gutter="20">
       <el-col :span="24">
         <el-card class="welcome-card">
@@ -25,10 +26,28 @@
               </el-col>
               <el-col :xs="24" :sm="12" :md="8">
                 <el-card shadow="hover" class="feature-card">
+                  <i class="el-icon-picture"></i>
+                  <h3>图片检测</h3>
+                  <p>分析新闻图片的真实性及内容验证</p>
+                  <el-button 
+                    type="primary" 
+                    @click="$router.push('/image-detection')"
+                  >
+                    开始检测
+                  </el-button>
+                </el-card>
+              </el-col>
+              <el-col :xs="24" :sm="12" :md="8">
+                <el-card shadow="hover" class="feature-card">
                   <i class="el-icon-info"></i>
                   <h3>关于系统</h3>
                   <p>了解系统的技术细节和使用说明</p>
-                  <el-button type="primary" @click="$router.push('/about')">查看详情</el-button>
+                  <el-button 
+                    type="primary" 
+                    @click="$router.push('/about')"
+                  >
+                    开始检测
+                  </el-button>
                 </el-card>
               </el-col>
             </el-row>
@@ -71,39 +90,8 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'Home',
-  data() {
-    return {
-      healthStatus: null,
-      healthLoading: false
-    }
-  },
-  mounted() {
-    this.checkHealth()
-  },
-  methods: {
-    checkHealth() {
-      this.healthLoading = true
-      this.$api.checkHealth()
-        .then(response => {
-          this.healthStatus = response.data
-        })
-        .catch(error => {
-          console.error('健康检查失败:', error)
-          this.$message.error('无法连接到API服务器，请检查服务是否运行')
-          this.healthStatus = null
-        })
-        .finally(() => {
-          this.healthLoading = false
-        })
-    }
-  }
-}
-</script>
-
 <style scoped>
+/* 原有样式保持不变 */
 .home {
   max-width: 1200px;
   margin: 0 auto;

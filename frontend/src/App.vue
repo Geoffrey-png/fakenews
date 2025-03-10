@@ -11,6 +11,7 @@
             <el-menu-item index="/">首页</el-menu-item>
             <el-menu-item index="/single">单文本检测</el-menu-item>
             <el-menu-item index="/batch">批量检测</el-menu-item>
+            <el-menu-item index="/image-detection">图片检测</el-menu-item>  <!-- 新增菜单项 -->
             <el-menu-item index="/about">关于系统</el-menu-item>
           </el-menu>
         </div>
