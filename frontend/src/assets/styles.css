@@ -1,0 +1,89 @@
+/* 全局样式 */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Microsoft YaHei', 'Avenir', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #2c3e50;
+  background-color: #f5f7fa;
+}
+
+/* 页面通用样式 */
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.page-header h1 {
+  color: #409EFF;
+  margin-bottom: 10px;
+}
+
+.page-header p {
+  color: #606266;
+}
+
+/* 卡片样式 */
+.custom-card {
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* 按钮组样式 */
+.button-group {
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+/* 提示文本样式 */
+.tip-text {
+  font-size: 14px;
+  color: #909399;
+  margin: 10px 0;
+}
+
+/* 强调文本样式 */
+.highlight-text {
+  color: #409EFF;
+  font-weight: bold;
+}
+
+/* 警告文本样式 */
+.warning-text {
+  color: #E6A23C;
+  font-weight: bold;
+}
+
+/* 错误文本样式 */
+.error-text {
+  color: #F56C6C;
+  font-weight: bold;
+}
+
+/* 成功文本样式 */
+.success-text {
+  color: #67C23A;
+  font-weight: bold;
+}
+
+/* 响应式调整 */
+@media screen and (max-width: 768px) {
+  .page-container {
+    padding: 10px;
+  }
+  
+  .button-group {
+    justify-content: center;
+  }
+} 

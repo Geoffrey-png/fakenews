@@ -1,0 +1,29 @@
+{
+  "name": "fakenews-detection-frontend",
+  "version": "1.0.0",
+  "description": "假新闻检测系统前端",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "axios": "^0.27.2",
+    "core-js": "^3.25.0",
+    "element-ui": "^2.15.10",
+    "vue": "^2.7.10",
+    "vue-router": "^3.6.5"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~5.0.8",
+    "@vue/cli-plugin-eslint": "~5.0.8",
+    "@vue/cli-plugin-router": "~5.0.8",
+    "@vue/cli-service": "~5.0.8",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^7.32.0",
+    "eslint-plugin-vue": "^8.7.1",
+    "sass": "^1.54.8",
+    "sass-loader": "^13.0.2"
+  }
+} 
