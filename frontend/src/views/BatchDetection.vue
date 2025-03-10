@@ -140,7 +140,7 @@
             <template slot-scope="scope">
               <el-progress 
                 type="circle" 
-                :percentage="(scope.row.prediction.confidence * 100).toFixed(0)" 
+                :percentage="getPercentage(scope.row.prediction.confidence)" 
                 :color="getConfidenceColor(scope.row.prediction.confidence)"
                 :width="40"
               ></el-progress>
@@ -192,14 +192,14 @@
           >
             {{ currentDetail.prediction.label }}
           </el-tag>
-          <span class="confidence">(置信度: {{ (currentDetail.prediction.confidence * 100).toFixed(2) }}%)</span>
+          <span class="confidence">(置信度: {{ formatPercentage(currentDetail.prediction.confidence) }}%)</span>
         </div>
         <div class="detail-probs">
           <h4>详细分析</h4>
           <div class="prob-item">
             <div class="prob-label">真实新闻概率:</div>
             <el-progress 
-              :percentage="(currentDetail.prediction.probabilities['真实新闻'] * 100).toFixed(1)" 
+              :percentage="getPercentage(currentDetail.prediction.probabilities['真实新闻'])" 
               :format="p => p + '%'"
               :color="getConfidenceColor(currentDetail.prediction.probabilities['真实新闻'])"
             ></el-progress>
@@ -207,7 +207,7 @@
           <div class="prob-item">
             <div class="prob-label">虚假新闻概率:</div>
             <el-progress 
-              :percentage="(currentDetail.prediction.probabilities['虚假新闻'] * 100).toFixed(1)" 
+              :percentage="getPercentage(currentDetail.prediction.probabilities['虚假新闻'])" 
               :format="p => p + '%'"
               :color="getConfidenceColor(currentDetail.prediction.probabilities['虚假新闻'])"
             ></el-progress>
@@ -313,14 +313,58 @@ export default {
     },
     processResults(texts, apiResults) {
       this.results = texts.map((text, index) => {
-        const result = apiResults[index]
+        // 获取对应的API结果
+        const result = apiResults[index];
+        
+        // 确保有一个有效的process_time值
+        const processTime = this.ensureNumber(result.process_time || result.processing_time, 0.1);
+        
+        // 确保有一个有效的prediction对象
+        let prediction = result.prediction || {};
+        
+        // 如果prediction中有confidence对象，使用它的值
+        if (prediction.confidence && typeof prediction.confidence === 'object') {
+          // 获取标签
+          const label = prediction.label || (prediction.label_id === 0 ? '真实新闻' : '虚假新闻');
+          const isRealNews = label === '真实新闻';
+          
+          // 获取正确的confidence值
+          const trueNewsConf = this.ensureNumber(prediction.confidence['真实新闻'], 0.5);
+          const fakeNewsConf = this.ensureNumber(prediction.confidence['虚假新闻'], 0.5);
+          
+          // 设置confidence为当前标签对应的置信度
+          prediction.confidence = isRealNews ? trueNewsConf : fakeNewsConf;
+          
+          // 确保probabilities存在
+          prediction.probabilities = {
+            '真实新闻': trueNewsConf,
+            '虚假新闻': fakeNewsConf
+          };
+        } else if (!prediction.confidence) {
+          // 如果没有confidence，设置默认值
+          prediction.confidence = 0.5;
+          prediction.probabilities = {
+            '真实新闻': 0.5,
+            '虚假新闻': 0.5
+          };
+        }
+        
+        // 返回格式化后的结果对象
         return {
           index,
           text,
-          prediction: result.prediction,
-          process_time: result.process_time
-        }
-      })
+          prediction,
+          process_time: processTime
+        };
+      });
+      
+      // 打印处理后的结果，用于调试
+      console.log('处理后的批量检测结果:', this.results);
+    },
+    ensureNumber(value, defaultValue = 0) {
+      if (value === undefined || value === null) return defaultValue;
+      const num = parseFloat(value);
+      return isNaN(num) ? defaultValue : num;
     },
     resetForm() {
       if (this.inputMethod === 'manual') {
@@ -353,8 +397,10 @@ export default {
       this.results.splice(index, 1)
     },
     getConfidenceColor(confidence) {
-      if (confidence < 0.6) return '#F56C6C'
-      if (confidence < 0.8) return '#E6A23C'
+      // 确保值是有效数字
+      const num = this.ensureNumber(confidence, 0);
+      if (num < 0.6) return '#F56C6C'
+      if (num < 0.8) return '#E6A23C'
       return '#67C23A'
     },
     getTrueNewsCount() {
@@ -364,16 +410,37 @@ export default {
       return this.results.filter(item => item.prediction.label === '虚假新闻').length
     },
     getTotalTime() {
-      if (this.results.length === 0) return 0
-      const totalTime = this.results.reduce((sum, item) => sum + item.process_time, 0)
-      return totalTime.toFixed(2)
+      if (this.results.length === 0) return 0;
+      const totalTime = this.results.reduce((sum, item) => {
+        // 确保process_time是有效数字
+        const time = this.ensureNumber(item.process_time, 0);
+        return sum + time;
+      }, 0);
+      return totalTime.toFixed(2);
     },
     sortResults(type) {
       if (type === 'index') {
-        this.results.sort((a, b) => a.index - b.index)
+        this.results.sort((a, b) => a.index - b.index);
       } else if (type === 'confidence') {
-        this.results.sort((a, b) => b.prediction.confidence - a.prediction.confidence)
+        this.results.sort((a, b) => {
+          // 确保confidence是有效数字
+          const confA = this.ensureNumber(b.prediction.confidence, 0);
+          const confB = this.ensureNumber(a.prediction.confidence, 0);
+          return confA - confB;
+        });
       }
+    },
+    getPercentage(value) {
+      // 确保值是有效数字
+      const num = this.ensureNumber(value, 0.5);
+      // 转换为百分比并返回整数
+      return parseFloat((num * 100).toFixed(0));
+    },
+    formatPercentage(value) {
+      // 确保值是有效数字
+      const num = this.ensureNumber(value, 0.5);
+      // 转换为百分比并返回两位小数
+      return (num * 100).toFixed(2);
     }
   }
 }
