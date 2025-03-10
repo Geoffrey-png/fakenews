@@ -17,6 +17,11 @@ const routes = [
     component: Home
   },
   {
+    path: '/ABOUT',
+    name: 'about',
+    component: About
+  },
+  {
     path: '/single',
     name: 'SingleDetection',
     component: SingleDetection
@@ -25,6 +30,11 @@ const routes = [
     path: '/batch',
     name: 'BatchDetection',
     component: BatchDetection
+  },
+  {
+    path: '/video-detection',
+    name: 'video-detection',
+    component: VideoDetection  // 修正为已导入的组件
   },
   {
     path: '/image-detection',
