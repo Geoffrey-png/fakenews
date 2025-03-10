@@ -13,31 +13,80 @@
 
 ```
 frontend/
-├── public/                 # 静态资源
-│   └── index.html          # HTML入口文件
-├── src/                    # 源代码
-│   ├── assets/             # 图片等静态资源
-│   │   └── styles.css      # 全局样式
-│   ├── components/         # 公共组件
-│   │   ├── LoadingIndicator.vue  # 加载指示器组件
-│   │   └── ResultCard.vue        # 结果展示卡片组件
-│   ├── views/              # 页面组件
-│   │   ├── Home.vue        # 首页
-│   │   ├── SingleDetection.vue  # 单文本检测页面
-│   │   ├── BatchDetection.vue   # 批量检测页面
-│   │   └── About.vue       # 关于系统页面
-│   ├── router/             # 路由配置
-│   │   └── index.js        # 路由定义
-│   ├── utils/              # 工具类
-│   │   └── api.js          # API服务
-│   ├── App.vue             # 应用程序入口组件
-│   └── main.js             # 应用程序入口文件
-├── babel.config.js         # Babel配置
-├── vue.config.js           # Vue配置文件
-├── package.json            # 项目依赖
-├── start_frontend.bat      # Windows启动脚本
-└── README.md               # 项目说明
+├── public/                      # 静态资源
+│   ├── index.html               # HTML入口文件
+│   └── img/                     # 图片资源目录
+│
+├── src/                         # 源代码
+│   ├── assets/                  # 静态资源
+│   │   └── styles.css           # 全局样式文件
+│   │
+│   ├── components/              # 公共组件
+│   │   ├── LoadingIndicator.vue # 加载状态指示器组件
+│   │   └── ResultCard.vue       # 检测结果卡片组件
+│   │
+│   ├── views/                   # 页面组件
+│   │   ├── Home.vue             # 首页 - 展示系统概览和功能入口
+│   │   ├── SingleDetection.vue  # 单文本检测页面 - 处理单篇新闻文本
+│   │   ├── BatchDetection.vue   # 批量检测页面 - 同时处理多篇新闻文本
+│   │   └── About.vue            # 关于系统页面 - 展示系统信息和使用说明
+│   │
+│   ├── router/                  # 路由配置
+│   │   └── index.js             # 路由定义和导航守卫
+│   │
+│   ├── utils/                   # 工具类
+│   │   └── api.js               # API服务封装，包含:
+│   │                            # - 请求/响应拦截器
+│   │                            # - API端点封装
+│   │                            # - 数据格式化处理
+│   │
+│   ├── App.vue                  # 应用程序根组件，包含全局布局
+│   └── main.js                  # 应用程序入口文件，初始化Vue实例
+│
+├── .env                         # 环境变量配置
+├── .eslintrc.js                 # ESLint配置文件 - 代码规范检查
+├── babel.config.js              # Babel配置 - JavaScript兼容性处理
+├── vue.config.js                # Vue CLI配置文件 - 开发服务器和构建配置
+├── package.json                 # 项目依赖配置和脚本命令
+├── SUMMARY.md                   # 项目总结文档
+├── start_frontend.bat           # Windows启动脚本 - 快速启动开发服务器
+└── README.md                    # 项目说明文档
 ```
+
+## 核心模块说明
+
+### 组件设计
+
+1. **ResultCard** (src/components/ResultCard.vue)
+   - 功能：显示新闻检测结果，包括真伪判断、置信度和概率分布
+   - 主要方法：
+     - `getConfidenceValue()`: 获取正确的置信度值
+     - `getPercentage()`: 将概率值转换为百分比
+     - `customColorMethod()`: 根据概率值返回不同颜色
+
+2. **LoadingIndicator** (src/components/LoadingIndicator.vue)
+   - 功能：显示加载状态指示器，提供用户反馈
+   - 特点：可自定义加载文本和进度
+
+### 工具类
+
+1. **API服务** (src/utils/api.js)
+   - 功能：封装与后端API的交互
+   - 主要方法：
+     - `checkHealth()`: 检查API服务状态
+     - `predictSingle()`: 单文本预测请求
+     - `predictBatch()`: 批量文本预测请求
+     - `formatSingleResponse()`: 规范化API响应数据格式
+
+### 页面组件
+
+1. **单文本检测** (src/views/SingleDetection.vue)
+   - 功能：提供单篇新闻文本的检测界面
+   - 特点：支持文本输入、示例填充、结果展示
+
+2. **批量检测** (src/views/BatchDetection.vue)
+   - 功能：同时检测多篇新闻文本
+   - 特点：支持手动添加和批量粘贴两种输入方式，结果表格展示
 
 ## 功能特点
 
