@@ -50,7 +50,13 @@ class ExplanationGenerator:
     
     def _create_prompt(self, news_text, prediction):
         """创建提示词"""
-        confidence = prediction.get("confidence", 0.5)
+        # 处理不同类型的confidence值
+        if isinstance(prediction.get("confidence"), dict):
+            # 如果confidence是字典，获取虚假新闻的置信度
+            confidence = prediction["confidence"].get("虚假新闻", 0.5)
+        else:
+            # 否则直接使用confidence值
+            confidence = prediction.get("confidence", 0.5)
         
         prompt = f"""你是一个专业的假新闻分析专家，请根据以下新闻文本分析为什么它是一条虚假新闻。
             

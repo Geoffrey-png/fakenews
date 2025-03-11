@@ -3,7 +3,7 @@ import axios from 'axios'
 // 创建axios实例
 const api = axios.create({
   // 明确指定baseURL，确保连接到正确的API服务器
-  baseURL: 'http://10.101.64.214:5000',
+  baseURL: 'http://localhost:5000',
   timeout: 30000 // 请求超时时间
 })
 
@@ -56,6 +56,11 @@ const apiService = {
   // 批量预测
   predictBatch(texts) {
     return api.post('/batch_predict', { texts })
+  },
+  
+  // 生成假新闻解释
+  generateExplanation(text, prediction) {
+    return api.post('/generate_explanation', { text, prediction })
   },
   
   // 转换单文本响应为标准格式

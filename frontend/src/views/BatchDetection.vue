@@ -174,14 +174,26 @@
             label="假新闻理由"
             min-width="200"
             show-overflow-tooltip
-            v-if="hasFakeNewsWithExplanation"
+            v-if="hasFakeNewsOrForExplanation"
           >
             <template slot-scope="scope">
               <div v-if="scope.row.prediction.label === '虚假新闻' && scope.row.explanation" 
-                  class="short-explanation"
-                  @click="showDetail(scope.row)">
+                   class="short-explanation"
+                   @click="showDetail(scope.row)">
                 <i class="el-icon-warning-outline"></i>
                 <span>{{ getShortExplanation(scope.row.explanation) }}</span>
+              </div>
+              <div v-else-if="scope.row.prediction.label === '虚假新闻' && !scope.row.explanation"
+                   class="get-explanation-button">
+                <el-button 
+                  type="text" 
+                  size="small"
+                  @click="generateExplanation(scope.row)"
+                  :loading="scope.row.loadingExplanation"
+                >
+                  <i class="el-icon-question"></i> 
+                  获取解释
+                </el-button>
               </div>
               <span v-else>-</span>
             </template>
@@ -233,9 +245,28 @@
         </div>
         
         <!-- 添加解释部分 -->
-        <div v-if="currentDetail.explanation && currentDetail.prediction.label === '虚假新闻'" class="detail-explanation">
+        <div v-if="currentDetail.prediction.label === '虚假新闻'" class="detail-explanation">
           <h4>为什么这是假新闻?</h4>
-          <div class="explanation-box">
+          
+          <div v-if="!currentDetail.explanation && !currentDetail.loadingExplanation" class="explanation-request">
+            <el-button 
+              type="primary" 
+              size="medium" 
+              @click="generateExplanation(currentDetail)" 
+              :loading="currentDetail.loadingExplanation"
+              icon="el-icon-question"
+            >
+              获取大模型解释
+            </el-button>
+            <span class="explanation-hint">点击按钮了解为何判定为假新闻</span>
+          </div>
+          
+          <div v-if="currentDetail.loadingExplanation" class="explanation-loading">
+            <i class="el-icon-loading"></i> 
+            <span>正在生成解释，请稍候...</span>
+          </div>
+          
+          <div v-if="currentDetail.explanation" class="explanation-box">
             <i class="el-icon-warning-outline"></i>
             <div v-html="formatExplanationText(currentDetail.explanation)"></div>
           </div>
@@ -281,12 +312,11 @@ export default {
     }
   },
   computed: {
-    // 计算是否有包含解释的假新闻
-    hasFakeNewsWithExplanation() {
+    // 计算是否有包含解释的假新闻或需要显示解释按钮
+    hasFakeNewsOrForExplanation() {
       return this.results.some(item => 
         item.prediction && 
-        item.prediction.label === '虚假新闻' && 
-        item.explanation
+        item.prediction.label === '虚假新闻'
       );
     }
   },
@@ -391,7 +421,8 @@ export default {
           index,
           text,
           prediction,
-          process_time: processTime
+          process_time: processTime,
+          loadingExplanation: false
         };
       });
       
@@ -495,6 +526,35 @@ export default {
       }
       
       return firstLine;
+    },
+    generateExplanation(item) {
+      if (!item || !item.text) {
+        this.$message.error('无法获取解释: 缺少新闻文本');
+        return;
+      }
+      
+      // 设置加载状态
+      this.$set(item, 'loadingExplanation', true);
+      
+      // 调用API获取解释
+      this.$api.generateExplanation(item.text, item.prediction)
+        .then(response => {
+          console.log('解释生成响应:', response.data);
+          
+          if (response.data && response.data.success) {
+            this.$set(item, 'explanation', response.data.explanation);
+            this.$message.success('解释生成成功');
+          } else {
+            this.$message.error('解释生成失败: ' + (response.data.message || '未知错误'));
+          }
+        })
+        .catch(error => {
+          console.error('解释API请求失败:', error);
+          this.$message.error('解释生成失败，请稍后再试');
+        })
+        .finally(() => {
+          this.$set(item, 'loadingExplanation', false);
+        });
     }
   }
 }
@@ -694,5 +754,18 @@ export default {
 .short-explanation i {
   margin-right: 5px;
   font-size: 16px;
+}
+
+.explanation-request {
+  margin-bottom: 10px;
+}
+
+.explanation-hint {
+  margin-left: 10px;
+  color: #909399;
+}
+
+.explanation-loading {
+  margin-bottom: 10px;
 }
 </style> 

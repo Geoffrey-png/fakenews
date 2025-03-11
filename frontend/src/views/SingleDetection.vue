@@ -62,12 +62,32 @@
       @clear="result = null"
     >
       <template v-slot:extra-content>
-        <!-- 添加解释显示 -->
-        <div v-if="result.explanation && result.prediction.label === '虚假新闻'" class="fake-news-explanation">
-          <h3>为什么系统认为这是假新闻?</h3>
-          <div class="explanation-content">
-            <i class="el-icon-warning-outline"></i>
-            <div v-html="formatExplanation(result.explanation)"></div>
+        <!-- 添加解释按钮和解释显示 -->
+        <div v-if="result.prediction.label === '虚假新闻'" class="fake-news-explanation">
+          <div v-if="!explanation && !loadingExplanation" class="explanation-request">
+            <el-button 
+              type="primary" 
+              size="medium" 
+              @click="getExplanation" 
+              :loading="loadingExplanation"
+              icon="el-icon-question"
+            >
+              获取大模型解释
+            </el-button>
+            <span class="explanation-hint">点击按钮了解为何判定为假新闻</span>
+          </div>
+          
+          <div v-if="loadingExplanation" class="explanation-loading">
+            <i class="el-icon-loading"></i> 
+            <span>正在生成解释，请稍候...</span>
+          </div>
+          
+          <div v-if="explanation" class="explanation-content-container">
+            <h3>为什么系统认为这是假新闻?</h3>
+            <div class="explanation-content">
+              <i class="el-icon-warning-outline"></i>
+              <div v-html="formatExplanation(explanation)"></div>
+            </div>
           </div>
         </div>
       </template>
@@ -102,6 +122,8 @@ export default {
         ]
       },
       loading: false,
+      loadingExplanation: false,
+      explanation: null,
       result: null,
       apiError: false,
       apiErrorMsg: '',
@@ -138,11 +160,13 @@ export default {
     resetForm() {
       this.$refs.form.resetFields()
       this.result = null
+      this.explanation = null
       this.rawResponse = null
     },
     detectNews() {
       this.loading = true
       this.result = null
+      this.explanation = null
       this.rawResponse = null
       console.log('发送检测请求，文本长度:', this.form.text.length)
       
@@ -173,6 +197,43 @@ export default {
         })
         .finally(() => {
           this.loading = false
+        })
+    },
+    getExplanation() {
+      if (!this.result || !this.form.text) {
+        this.$message.error('无法获取解释: 缺少新闻文本或检测结果')
+        return
+      }
+      
+      this.loadingExplanation = true
+      
+      // 构造请求数据
+      const requestData = {
+        text: this.form.text,
+        prediction: {
+          label: this.result.prediction.label,
+          confidence: this.result.prediction.confidence
+        }
+      }
+      
+      // 调用API获取解释
+      this.$api.generateExplanation(this.form.text, this.result.prediction)
+        .then(response => {
+          console.log('解释生成响应:', response.data)
+          
+          if (response.data && response.data.success) {
+            this.explanation = response.data.explanation
+            this.$message.success('解释生成成功')
+          } else {
+            this.$message.error('解释生成失败: ' + (response.data.message || '未知错误'))
+          }
+        })
+        .catch(error => {
+          console.error('解释API请求失败:', error)
+          this.$message.error('解释生成失败，请稍后再试')
+        })
+        .finally(() => {
+          this.loadingExplanation = false
         })
     },
     fillSampleTrue() {
@@ -237,25 +298,57 @@ export default {
 
 .fake-news-explanation {
   margin-top: 20px;
-  padding: 10px;
-  background-color: #F0F9EB;
+  padding: 16px;
+  background-color: #FFF8F8;
   border-radius: 4px;
+  border-left: 4px solid #F56C6C;
 }
 
-.fake-news-explanation h3 {
+.explanation-request {
+  display: flex;
+  align-items: center;
   margin-bottom: 10px;
+}
+
+.explanation-hint {
+  margin-left: 10px;
+  color: #606266;
+  font-size: 14px;
+}
+
+.explanation-loading {
+  display: flex;
+  align-items: center;
+  margin: 20px 0;
+  color: #409EFF;
+}
+
+.explanation-loading i {
+  margin-right: 10px;
+}
+
+.explanation-content-container h3 {
+  margin-bottom: 16px;
+  color: #F56C6C;
 }
 
 .explanation-content {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  background-color: #FFF;
+  padding: 16px;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
 
 .explanation-content i {
   margin-right: 10px;
+  color: #F56C6C;
+  font-size: 20px;
 }
 
 .explanation-content div {
   flex: 1;
+  line-height: 1.6;
 }
 </style> 
