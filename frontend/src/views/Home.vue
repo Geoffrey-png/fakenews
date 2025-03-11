@@ -4,7 +4,7 @@
       <el-col :span="24">
         <el-card class="welcome-card">
             <div style="text-align: center;">
-            <h1>欢迎使用Clear Fake</h1>
+            <h1>欢迎使用假新闻检测系统</h1>
             <p>本系统使用深度学习技术检测新闻文本的真伪，帮助用户识别可能的虚假信息。</p>
             </div>
           <div class="features">
