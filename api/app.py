@@ -49,6 +49,17 @@ def load_model():
         app.logger.info('正在加载模型...')
         model_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'models', 'fake_news_bert_model_final.pth'))
         predictor = FakeNewsPredictor(model_path)
+        
+        # 模型预热，避免首次预测慢
+        app.logger.info('模型预热中...')
+        sample_texts = [
+            "北京冬奥会2022年2月4日开幕",
+            "震惊！某明星深夜现身酒吧",
+            "中国科学家在量子计算领域取得重大突破"
+        ]
+        _ = predictor.predict_batch(sample_texts)
+        app.logger.info('模型预热完成')
+        
         app.logger.info('模型加载成功')
     except Exception as e:
         app.logger.error(f'模型加载失败: {str(e)}')
@@ -65,7 +76,13 @@ def load_explanation_generator():
         # 进行测试调用
         test_result = explanation_generator.generate_explanation(
             "测试新闻文本",
-            {"label": "虚假新闻", "confidence": 0.9}
+            {
+                "label": "虚假新闻", 
+                "confidence": {
+                    "真实新闻": 0.1,
+                    "虚假新闻": 0.9
+                }
+            }
         )
         if test_result:
             app.logger.info(f"解释生成器测试成功: {test_result[:20]}...")
@@ -156,26 +173,25 @@ def predict():
             
         # 预测
         start_time = time.time()
-        raw_prediction = predictor.predict(text)
+        prediction = predictor.predict(text)  # 现在predict方法已经优化，包含缓存机制
         end_time = time.time()
         process_time = end_time - start_time
         
-        # 转换预测结果格式
-        predicted_class = raw_prediction.get('class', 1)  # 默认为虚假新闻
-        probabilities = raw_prediction.get('probabilities', [0.5, 0.5])
-        
-        # 构建前端期望的预测结果格式
-        prediction = {
-            'label': '真实新闻' if predicted_class == 0 else '虚假新闻',
-            'label_id': predicted_class,
-            'confidence': {
-                '真实新闻': float(probabilities[0]),
-                '虚假新闻': float(probabilities[1])
+        # 确保prediction包含label字段
+        if 'label' not in prediction:
+            # 添加label字段
+            prediction['label'] = '真实新闻' if prediction.get('class', 1) == 0 else '虚假新闻'
+            
+        # 确保confidence字段格式正确
+        if 'confidence' not in prediction and 'probabilities' in prediction:
+            prediction['confidence'] = {
+                '真实新闻': prediction['probabilities'][0],
+                '虚假新闻': prediction['probabilities'][1]
             }
-        }
         
-        # 记录预测结果
-        app.logger.info(f'预测结果: {prediction["label"]} (置信度: {prediction["confidence"][prediction["label"]]:.4f})')
+        # 记录预测结果和处理时间
+        app.logger.info(f'预测结果: {prediction["label"]} (置信度: {prediction["probabilities"][1] if "probabilities" in prediction else 0:.4f})')
+        app.logger.info(f'处理时间: {process_time:.4f}秒')
         
         # 构建响应
         response_data = {
@@ -204,64 +220,44 @@ def batch_predict():
         if not texts or not isinstance(texts, list):
             return jsonify({'success': False, 'error': '文本数组不能为空且必须是数组'}), 400
             
+        # 过滤无效文本
+        valid_texts = [text for text in texts if text and isinstance(text, str)]
+        if not valid_texts:
+            return jsonify({'success': False, 'error': '没有有效的文本'}), 400
+            
         # 记录请求
-        app.logger.info(f'收到批量预测请求: {len(texts)}条文本')
+        app.logger.info(f'收到批量预测请求: {len(valid_texts)}条文本')
         
         # 确保模型已加载
         if predictor is None:
             return jsonify({'success': False, 'error': '模型未加载'}), 503
             
         # 批量预测
-        results = []
+        start_time = time.time()
         
-        for text in texts:
-            if not text or not isinstance(text, str):
-                results.append({
-                    'success': False,
-                    'error': '无效的文本'
-                })
-                continue
-                
-            try:
-                # 预测
-                start_time = time.time()
-                raw_prediction = predictor.predict(text)
-                end_time = time.time()
-                process_time = end_time - start_time
-                
-                # 转换预测结果格式
-                predicted_class = raw_prediction.get('class', 1)  # 默认为虚假新闻
-                probabilities = raw_prediction.get('probabilities', [0.5, 0.5])
-                
-                # 构建前端期望的预测结果格式
-                prediction = {
-                    'label': '真实新闻' if predicted_class == 0 else '虚假新闻',
-                    'label_id': predicted_class,
-                    'confidence': {
-                        '真实新闻': float(probabilities[0]),
-                        '虚假新闻': float(probabilities[1])
-                    }
-                }
-                
-                # 构建结果
-                result = {
-                    'success': True,
-                    'prediction': prediction,
-                    'process_time': process_time
-                }
-                
-                results.append(result)
-                
-            except Exception as e:
-                app.logger.error(f'批量预测单项失败: {str(e)}')
-                results.append({
-                    'success': False,
-                    'error': str(e)
-                })
+        # 使用批处理功能
+        batch_predictions = predictor.predict_batch(valid_texts)
+        
+        end_time = time.time()
+        total_process_time = end_time - start_time
+        
+        # 构建结果
+        results = []
+        for i, prediction in enumerate(batch_predictions):
+            # 构建结果
+            result = {
+                'success': True,
+                'prediction': prediction,
+                'process_time': total_process_time / len(valid_texts)  # 平均处理时间
+            }
+            results.append(result)
+        
+        app.logger.info(f'批量预测完成，总耗时: {total_process_time:.4f}秒，平均每条: {total_process_time/len(valid_texts):.4f}秒')
         
         return jsonify({
             'success': True,
-            'results': results
+            'results': results,
+            'total_time': total_process_time
         })
         
     except Exception as e:

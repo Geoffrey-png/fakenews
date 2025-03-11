@@ -4,6 +4,7 @@ import json
 import time
 import base64
 import logging
+import hashlib
 
 class ExplanationGenerator:
     def __init__(self):
@@ -14,6 +15,11 @@ class ExplanationGenerator:
         self.logger = logging.getLogger("explanation_generator")
         # 添加默认模型参数
         self.model = "4.0Ultra"
+        
+        # 初始化解释缓存
+        self.explanation_cache = {}
+        self.max_cache_size = 1000  # 最大缓存条目数
+        self.logger.info("解释缓存已初始化，最大缓存数: 1000")
         
     def generate_explanation(self, news_text, prediction):
         """
@@ -31,6 +37,14 @@ class ExplanationGenerator:
             if prediction['label'] != '虚假新闻':
                 return None
                 
+            # 计算缓存键（使用新闻文本的哈希值）
+            cache_key = hashlib.md5(news_text.encode('utf-8')).hexdigest()
+            
+            # 检查缓存
+            if cache_key in self.explanation_cache:
+                self.logger.info(f"使用缓存的解释结果: {cache_key[:8]}...")
+                return self.explanation_cache[cache_key]
+                
             # 创建提示词
             prompt = self._create_prompt(news_text, prediction)
             
@@ -39,7 +53,11 @@ class ExplanationGenerator:
             
             # 如果解释为空，返回默认解释
             if not explanation or len(explanation.strip()) == 0:
-                return "系统无法生成详细解释，但此新闻具有虚假信息的特征。"
+                explanation = "系统无法生成详细解释，但此新闻具有虚假信息的特征。"
+                
+            # 存入缓存
+            self.explanation_cache[cache_key] = explanation
+            self.logger.info(f"解释结果已缓存: {cache_key[:8]}...")
                 
             return explanation
             
@@ -57,6 +75,10 @@ class ExplanationGenerator:
         else:
             # 否则直接使用confidence值
             confidence = prediction.get("confidence", 0.5)
+            
+        # 如果confidence是字典对象，需要特殊处理
+        if not isinstance(confidence, (int, float)):
+            confidence = 0.7  # 使用默认值
         
         prompt = f"""你是一个专业的假新闻分析专家，请根据以下新闻文本分析为什么它是一条虚假新闻。
             
@@ -102,12 +124,20 @@ class ExplanationGenerator:
                 "Authorization": f"Bearer {self.api_key}"
             }
             
+            # 记录请求开始时间（用于性能分析）
+            start_time = time.time()
+            
             # 发送请求
             response = requests.post(
                 self.host,
                 headers=headers,
-                json=request_data
+                json=request_data,
+                timeout=10  # 设置10秒超时
             )
+            
+            # 计算响应时间
+            response_time = time.time() - start_time
+            self.logger.info(f"API响应时间: {response_time:.2f}秒")
             
             # 检查响应状态
             if response.status_code != 200:
