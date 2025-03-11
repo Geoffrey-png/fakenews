@@ -14,8 +14,9 @@ import sys
 # 添加项目根目录到系统路径
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# 导入预测模型
+# 导入预测模型和解释生成器
 from api.model_loader import FakeNewsPredictor
+from api.explanation_generator import ExplanationGenerator
 
 # 创建应用实例
 app = Flask(__name__)
@@ -36,6 +37,7 @@ app.logger.info('API服务启动')
 
 # 全局变量
 predictor = None
+explanation_generator = None
 
 # 加载模型函数
 def load_model():
@@ -50,22 +52,56 @@ def load_model():
         app.logger.error(f'模型加载失败: {str(e)}')
         raise
 
+# 加载解释生成器函数
+def load_explanation_generator():
+    """加载解释生成器"""
+    global explanation_generator
+    try:
+        app.logger.info('正在初始化解释生成器...')
+        explanation_generator = ExplanationGenerator()
+        app.logger.info('解释生成器初始化成功')
+        # 进行测试调用
+        test_result = explanation_generator.generate_explanation(
+            "测试新闻文本",
+            {"label": "虚假新闻", "confidence": 0.9}
+        )
+        if test_result:
+            app.logger.info(f"解释生成器测试成功: {test_result[:20]}...")
+        else:
+            app.logger.warning("解释生成器测试返回空结果")
+    except Exception as e:
+        app.logger.error(f'解释生成器初始化失败: {str(e)}')
+        app.logger.error('将继续运行，但无法提供假新闻解释功能')
+
 # 在请求前确保模型已加载
 @app.before_request
 def ensure_model_loaded():
-    global predictor
+    global predictor, explanation_generator
     if predictor is None:
         try:
             load_model()
         except Exception as e:
-            app.logger.error(f'请求处理前模型加载失败: {str(e)}')
+            pass  # 错误会在相应的路由处理中处理
+    
+    if explanation_generator is None:
+        try:
+            load_explanation_generator()
+        except Exception as e:
+            pass  # 解释生成器初始化失败不应阻止API继续运行
 
 # 尝试在应用启动时加载模型
 try:
     load_model()
 except Exception as e:
-    app.logger.error(f'应用启动时模型加载失败: {str(e)}')
-    pass  # 让应用继续启动，在第一次请求时再次尝试加载
+    app.logger.warning(f'应用启动时模型加载失败: {str(e)}')
+    app.logger.warning('将在第一次请求时尝试再次加载')
+
+# 尝试在应用启动时初始化解释生成器
+try:
+    load_explanation_generator()
+except Exception as e:
+    app.logger.warning(f'应用启动时解释生成器初始化失败: {str(e)}')
+    app.logger.warning('将在第一次请求时尝试再次初始化')
 
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -82,7 +118,7 @@ def predict():
     接收新闻文本并返回预测结果
     请求格式: { "text": "新闻内容..." }
     """
-    global predictor
+    global predictor, explanation_generator
     
     # 如果模型未加载，尝试加载
     if predictor is None:
@@ -117,6 +153,23 @@ def predict():
         # 执行预测
         start_time = time.time()
         result = predictor.predict(text)
+        
+        # 如果是假新闻且解释生成器可用，则生成解释
+        explanation = ""
+        if result['class'] == 1 and explanation_generator is not None:  # 1表示假新闻
+            try:
+                # 构建用于解释生成的预测结果
+                pred_for_explanation = {
+                    'label': '虚假新闻',
+                    'label_id': 1,
+                    'confidence': float(result['probabilities'][1])
+                }
+                explanation = explanation_generator.generate_explanation(text, pred_for_explanation)
+                app.logger.info(f'已为假新闻生成解释，长度: {len(explanation)}')
+            except Exception as e:
+                app.logger.error(f'生成解释失败: {str(e)}')
+                # 解释生成失败不影响主要功能
+        
         end_time = time.time()
         
         # 构建响应
@@ -133,7 +186,8 @@ def predict():
                     '虚假新闻': float(probabilities[1])
                 }
             },
-            'processing_time': end_time - start_time
+            'explanation': explanation,  # 添加解释字段
+            'process_time': end_time - start_time
         }
         
         # 记录结果
@@ -155,7 +209,7 @@ def batch_predict():
     批量处理多个新闻文本
     请求格式: { "texts": ["新闻1", "新闻2", ...] }
     """
-    global predictor
+    global predictor, explanation_generator
     
     # 如果模型未加载，尝试加载
     if predictor is None:
@@ -191,29 +245,61 @@ def batch_predict():
         start_time = time.time()
         results = []
         
-        for text in texts:
+        for i, text in enumerate(texts):
             if not text:
                 results.append({
                     'success': False,
                     'error': '空文本'
                 })
                 continue
-                
-            result = predictor.predict(text)
-            predicted_class = result['class']
-            probabilities = result['probabilities']
             
-            results.append({
-                'success': True,
-                'prediction': {
-                    'label': '真实新闻' if predicted_class == 0 else '虚假新闻',
-                    'label_id': predicted_class,
-                    'confidence': {
-                        '真实新闻': float(probabilities[0]),
-                        '虚假新闻': float(probabilities[1])
-                    }
-                }
-            })
+            try:
+                # 单文本预测
+                text_start_time = time.time()
+                result = predictor.predict(text)
+                
+                # 构建预测结果
+                predicted_class = result['class']
+                probabilities = result['probabilities']
+                
+                # 如果是假新闻且解释生成器可用，则生成解释
+                explanation = ""
+                if predicted_class == 1 and explanation_generator is not None:  # 1表示假新闻
+                    try:
+                        # 构建用于解释生成的预测结果
+                        pred_for_explanation = {
+                            'label': '虚假新闻',
+                            'label_id': 1,
+                            'confidence': float(probabilities[1])
+                        }
+                        explanation = explanation_generator.generate_explanation(text, pred_for_explanation)
+                    except Exception as e:
+                        app.logger.error(f'生成第{i+1}条文本解释失败: {str(e)}')
+                        # 解释生成失败不影响主要功能
+                
+                text_end_time = time.time()
+                
+                # 添加到结果列表
+                results.append({
+                    'success': True,
+                    'prediction': {
+                        'label': '真实新闻' if predicted_class == 0 else '虚假新闻',
+                        'label_id': predicted_class,
+                        'confidence': {
+                            '真实新闻': float(probabilities[0]),
+                            '虚假新闻': float(probabilities[1])
+                        }
+                    },
+                    'explanation': explanation,  # 添加解释字段
+                    'process_time': text_end_time - text_start_time
+                })
+                
+            except Exception as e:
+                app.logger.error(f'处理第{i+1}条文本时出错: {str(e)}')
+                results.append({
+                    'success': False,
+                    'error': f'处理文本时出错: {str(e)}'
+                })
         
         end_time = time.time()
         
@@ -221,11 +307,10 @@ def batch_predict():
         response = {
             'success': True,
             'results': results,
-            'processing_time': end_time - start_time
+            'total_time': end_time - start_time
         }
         
-        # 记录结果
-        app.logger.info(f'批量预测完成: {len(texts)}篇文章, 耗时: {end_time - start_time:.2f}秒')
+        app.logger.info(f'批量预测完成，处理了{len(texts)}篇文章，总耗时{end_time - start_time:.2f}秒')
         
         return jsonify(response)
     

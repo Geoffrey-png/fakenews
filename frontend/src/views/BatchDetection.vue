@@ -168,6 +168,24 @@
               ></el-button>
             </template>
           </el-table-column>
+          
+          <!-- 假新闻解释简介列 -->
+          <el-table-column
+            label="假新闻理由"
+            min-width="200"
+            show-overflow-tooltip
+            v-if="hasFakeNewsWithExplanation"
+          >
+            <template slot-scope="scope">
+              <div v-if="scope.row.prediction.label === '虚假新闻' && scope.row.explanation" 
+                  class="short-explanation"
+                  @click="showDetail(scope.row)">
+                <i class="el-icon-warning-outline"></i>
+                <span>{{ getShortExplanation(scope.row.explanation) }}</span>
+              </div>
+              <span v-else>-</span>
+            </template>
+          </el-table-column>
         </el-table>
       </el-card>
     </div>
@@ -213,6 +231,15 @@
             ></el-progress>
           </div>
         </div>
+        
+        <!-- 添加解释部分 -->
+        <div v-if="currentDetail.explanation && currentDetail.prediction.label === '虚假新闻'" class="detail-explanation">
+          <h4>为什么这是假新闻?</h4>
+          <div class="explanation-box">
+            <i class="el-icon-warning-outline"></i>
+            <div v-html="formatExplanationText(currentDetail.explanation)"></div>
+          </div>
+        </div>
       </div>
       <span slot="footer" class="dialog-footer">
         <el-button @click="detailDialogVisible = false">关闭</el-button>
@@ -251,6 +278,16 @@ export default {
       results: [],
       detailDialogVisible: false,
       currentDetail: null
+    }
+  },
+  computed: {
+    // 计算是否有包含解释的假新闻
+    hasFakeNewsWithExplanation() {
+      return this.results.some(item => 
+        item.prediction && 
+        item.prediction.label === '虚假新闻' && 
+        item.explanation
+      );
     }
   },
   methods: {
@@ -441,6 +478,23 @@ export default {
       const num = this.ensureNumber(value, 0.5);
       // 转换为百分比并返回两位小数
       return (num * 100).toFixed(2);
+    },
+    formatExplanationText(text) {
+      // 将文本中的换行符转换为HTML换行
+      return text.replace(/\n/g, '<br>');
+    },
+    getShortExplanation(explanation) {
+      if (!explanation) return '';
+      
+      // 获取第一行作为简短解释
+      const firstLine = explanation.split('\n')[0];
+      
+      // 如果第一行太长，则截取适当长度
+      if (firstLine.length > 50) {
+        return firstLine.substring(0, 50) + '...';
+      }
+      
+      return firstLine;
     }
   }
 }
@@ -590,5 +644,55 @@ export default {
 .prob-label {
   margin-bottom: 5px;
   font-weight: 600;
+}
+
+.detail-explanation {
+  margin-top: 20px;
+  border-top: 1px solid #EBEEF5;
+  padding-top: 15px;
+}
+
+.detail-explanation h4 {
+  color: #F56C6C;
+  margin-bottom: 10px;
+}
+
+.explanation-box {
+  background-color: #FEF0F0;
+  border-radius: 4px;
+  padding: 15px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.explanation-box i {
+  color: #F56C6C;
+  font-size: 18px;
+  margin-right: 10px;
+  margin-top: 3px;
+}
+
+.explanation-box div {
+  flex: 1;
+  line-height: 1.6;
+}
+
+.short-explanation {
+  display: flex;
+  align-items: center;
+  color: #F56C6C;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.short-explanation:hover {
+  background-color: #FEF0F0;
+}
+
+.short-explanation i {
+  margin-right: 5px;
+  font-size: 16px;
 }
 </style> 

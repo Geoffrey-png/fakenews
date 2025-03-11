@@ -60,7 +60,18 @@
       v-if="result" 
       :result="result" 
       @clear="result = null"
-    />
+    >
+      <template v-slot:extra-content>
+        <!-- 添加解释显示 -->
+        <div v-if="result.explanation && result.prediction.label === '虚假新闻'" class="fake-news-explanation">
+          <h3>为什么系统认为这是假新闻?</h3>
+          <div class="explanation-content">
+            <i class="el-icon-warning-outline"></i>
+            <div v-html="formatExplanation(result.explanation)"></div>
+          </div>
+        </div>
+      </template>
+    </result-card>
 
     <loading-indicator 
       :loading="loading" 
@@ -169,6 +180,10 @@ export default {
     },
     fillSampleFake() {
       this.form.text = '震惊！某明星深夜现身酒吧，与神秘人密会3小时'
+    },
+    formatExplanation(explanation) {
+      // 实现格式化解释的逻辑
+      return explanation.replace(/\n/g, '<br>')
     }
   }
 }
@@ -218,5 +233,29 @@ export default {
   white-space: pre-wrap;
   font-family: monospace;
   font-size: 12px;
+}
+
+.fake-news-explanation {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #F0F9EB;
+  border-radius: 4px;
+}
+
+.fake-news-explanation h3 {
+  margin-bottom: 10px;
+}
+
+.explanation-content {
+  display: flex;
+  align-items: center;
+}
+
+.explanation-content i {
+  margin-right: 10px;
+}
+
+.explanation-content div {
+  flex: 1;
 }
 </style> 
