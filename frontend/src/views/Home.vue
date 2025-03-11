@@ -3,8 +3,10 @@
     <el-row :gutter="20">
       <el-col :span="24">
         <el-card class="welcome-card">
-          <h1>欢迎使用假新闻检测系统</h1>
-          <p>本系统使用深度学习技术检测新闻文本的真伪，帮助用户识别可能的虚假信息。</p>
+            <div style="text-align: center;">
+            <h1>欢迎使用假新闻检测系统</h1>
+            <p>本系统使用深度学习技术检测新闻文本的真伪，帮助用户识别可能的虚假信息。</p>
+            </div>
           <div class="features">
             <el-row :gutter="20">
               <el-col :xs="24" :sm="12" :md="8">
@@ -73,7 +75,7 @@
                     type="primary" 
                     @click="$router.push('/about')"
                   >
-                    开始检测
+                    查看详情
                   </el-button>
                 </el-card>
               </el-col>
