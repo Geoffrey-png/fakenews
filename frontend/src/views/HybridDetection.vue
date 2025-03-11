@@ -1,7 +1,12 @@
 <template>
   <div class="hybrid-detection">
+    <div class="page-header">
+      <h1>混合内容检测</h1>
+      <p>输入需要检测的内容URL，系统将分析其真实性</p>
+    </div>
+
     <el-card class="main-card">
-      <h2>混合内容检测</h2>
+      <h2 class="page-title">混合内容检测</h2>
       
       <!-- 新增默认状态提示 -->
       <el-alert
@@ -126,8 +131,34 @@ export default {
 </script>
 
 <style scoped>
+/* 新增页面容器样式 */
+.hybrid-detection {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* 新增页眉样式 */
+.page-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.page-header h1 {
+  color: #409EFF;
+  font-size: 28px;
+  margin-bottom: 15px;
+}
+
+.page-header p {
+  color: #606266;
+  font-size: 16px;
+}
+
+/* 调整原卡片样式 */
 .main-card {
-  min-height: 400px;  /* 新增最小高度 */
+  min-height: 400px;
+  padding: 20px;
 }
 
 .guide-alert {

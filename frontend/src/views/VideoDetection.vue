@@ -13,14 +13,27 @@
         accept="video/mp4,video/avi,video/quicktime"
       >
         <div class="upload-area">
-          <i class="el-icon-upload" />
-          <div class="upload-text">
-            <p>点击上传视频文件（支持MP4/AVI/MOV格式）</p>
-            <p class="tip-text">最大支持500MB的视频文件</p>
+          <div class="upload-content">
+            <i class="el-icon-upload" style="font-size: 40px; margin-bottom: 10px;"/>
+            <div class="upload-text">
+              <p>点击上传视频文件（支持MP4/AVI/MOV格式）</p>
+              <p class="tip-text">最大支持500MB的视频文件</p>
+            </div>
           </div>
         </div>
       </el-upload>
-
+      
+      <!-- 新增检测按钮 -->
+      <div class="upload-action" v-if="uploadedVideo">
+        <el-button 
+          type="primary" 
+          :loading="loading"
+          @click="startDetection"
+          icon="el-icon-video-play"
+        >
+          {{ loading ? '分析中...' : '立即检测' }}
+        </el-button>
+      </div>
       <!-- 视频预览 -->
       <div v-if="uploadedVideo" class="video-preview">
         <video 
@@ -136,10 +149,21 @@ export default {
   border: 2px dashed #ddd;
   border-radius: 6px;
   padding: 20px;
-  margin-bottom: 30px;
+  margin: 0 auto 30px; /* 增加水平居中 */
+  display: flex; /* 新增flex布局 */
+  justify-content: center; /* 新增水平居中 */
+  width: 80%; /* 限制宽度增强居中效果 */
 }
 
 .upload-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* 新增垂直居中 */
+  min-height: 200px; /* 设置最小高度保证垂直居中效果 */
+}
+
+.upload-content {
   display: flex;
   flex-direction: column;
   align-items: center;

@@ -1,9 +1,12 @@
 <template>
   <div class="image-detection">
+    <div class="page-header">
+      <h1>图片内容检测</h1>
+      <p>在下方上传图片，系统将分析其真实性</p>
+    </div>
+
     <el-card class="main-card">
-      <h2>图片内容检测</h2>
-      
-      <!-- 上传区域 -->
+      <!-- 原有上传组件 -->
       <el-upload
         class="upload-container"
         :action="uploadUrl"
@@ -61,6 +64,58 @@
     </el-card>
   </div>
 </template>
+
+<style scoped>
+.image-detection {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.page-header h1 {
+  color: #409EFF;
+  font-size: 28px;
+  margin-bottom: 15px;
+}
+
+.page-header p {
+  color: #606266;
+  font-size: 16px;
+}
+
+/* 保持原有上传组件样式不变 */
+.upload-container {
+  margin: 50px auto;
+  text-align: center;
+  padding: 30px;
+  border: 2px dashed #eee;
+}
+
+.preview-area {
+  margin: 30px 0;
+  text-align: center;
+}
+
+.result-alert {
+  margin: 30px auto;
+  max-width: 600px;
+}
+
+.reset-btn {
+  margin-top: 20px;
+  width: 200px;
+}
+
+.loading-container {
+  margin: 40px 0;
+  text-align: center;
+}
+</style>
 
 <script>
 export default {
@@ -121,33 +176,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-/* 合并重复的样式定义 */
-.upload-container {
-  margin: 50px auto;
-  text-align: center;
-  padding: 30px;
-  border: 2px dashed #eee;
-}
-
-.preview-area {
-  margin: 30px 0;
-  text-align: center;
-}
-
-.result-alert {
-  margin: 30px auto;
-  max-width: 600px;
-}
-
-.reset-btn {
-  margin-top: 20px;
-  width: 200px;
-}
-
-.loading-container {
-  margin: 40px 0;
-  text-align: center;
-}
-</style>
