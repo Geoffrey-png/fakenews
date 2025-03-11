@@ -4,10 +4,9 @@ import Home from '../views/Home.vue'
 import SingleDetection from '../views/SingleDetection.vue'
 import BatchDetection from '../views/BatchDetection.vue'
 import About from '../views/About.vue'
-import VideoDetection from '../views/VideoDetection.vue'  // 新增组件导入
-import ImageDetection from '../views/ImageDetection.vue'
-import HybridDetection from '../views/HybridDetection.vue'
-
+import VideoDetection from '../views/VideoDetection.vue'  // 导入VideoDetection组件
+import ImageDetection from '../views/ImageDetection.vue'  // 导入ImageDetection组件
+import HybridDetection from '../views/HybridDetection.vue'  // 导入HybridDetection组件
 Vue.use(VueRouter)
 
 const routes = [
@@ -15,11 +14,6 @@ const routes = [
     path: '/',
     name: 'Home',
     component: Home
-  },
-  {
-    path: '/ABOUT',
-    name: 'about',
-    component: About
   },
   {
     path: '/single',
@@ -30,6 +24,11 @@ const routes = [
     path: '/batch',
     name: 'BatchDetection',
     component: BatchDetection
+  },
+  {
+    path: '/about',
+    name: 'About',
+    component: About
   },
   {
     path: '/video-detection',
@@ -45,6 +44,11 @@ const routes = [
     path: '/hybrid-detection',
     name: 'HybridDetection',
     component: HybridDetection  // 修正为已导入的组件
+  },
+  // 添加通配符路由，处理404情况
+  {
+    path: '*',
+    redirect: '/'
   }
 ]
 

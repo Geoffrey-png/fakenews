@@ -58,6 +58,11 @@ const apiService = {
     return api.post('/batch_predict', { texts })
   },
   
+  // 生成假新闻解释
+  generateExplanation(text, prediction) {
+    return api.post('/generate_explanation', { text, prediction })
+  },
+  
   // 转换单文本响应为标准格式
   formatSingleResponse(data) {
     console.log('格式化前的原始数据:', JSON.stringify(data));
