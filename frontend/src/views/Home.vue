@@ -3,10 +3,10 @@
     <el-row :gutter="20">
       <el-col :span="24">
         <el-card class="welcome-card">
-            <div style="text-align: center;">
+          <div style="text-align: center;">
             <h1>欢迎使用假新闻检测系统</h1>
             <p>本系统使用深度学习技术检测新闻文本的真伪，帮助用户识别可能的虚假信息。</p>
-            </div>
+          </div>
           <div class="features">
             <el-row :gutter="20">
               <el-col :xs="24" :sm="12" :md="8">
@@ -38,7 +38,6 @@
                   </el-button>
                 </el-card>
               </el-col>
-               <!-- 新增混合检测模块 -->
               <el-col :xs="24" :sm="12" :md="8">
                 <el-card shadow="hover" class="feature-card">
                   <i class="el-icon-connection"></i>
@@ -52,7 +51,6 @@
                   </el-button>
                 </el-card>
               </el-col>
-              <!-- 新增视频检测模块 -->
               <el-col :xs="24" :sm="12" :md="8">
                 <el-card shadow="hover" class="feature-card">
                   <i class="el-icon-video-camera"></i>
@@ -119,13 +117,56 @@
   </div>
 </template>
 
+<script>
+export default {
+  data() {
+    return {
+      healthStatus: null,
+      healthLoading: false
+    }
+  },
+  mounted() {
+    this.checkHealth()
+  },
+  methods: {
+    checkHealth() {
+      this.healthLoading = true
+      this.$api.checkHealth()
+        .then(response => {
+          this.healthStatus = response.data
+        })
+        .catch(error => {
+          console.error('API状态检查失败:', error)
+          this.healthStatus = null
+        })
+        .finally(() => {
+          this.healthLoading = false
+        })
+    }
+  }
+}
+</script>
+
 <style scoped>
-/* 新增栅格布局适配 */
-.el-col-md-6 {
-  width: 25%;
+.home {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-/* 保持原有样式不变 */
+.page-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.page-header h1 {
+  color: #409EFF;
+  margin-bottom: 10px;
+}
+
+.page-header p {
+  color: #606266;
+}
+
 .feature-card {
   text-align: center;
   padding: 20px;
@@ -159,4 +200,4 @@
   font-size: 0.8rem;
   margin-top: 10px;
 }
-</style> 
+</style>
