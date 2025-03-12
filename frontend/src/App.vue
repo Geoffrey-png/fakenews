@@ -22,7 +22,7 @@
         <router-view/>
       </el-main>
       <el-footer>
-        <p>© 2023 假新闻检测系统 - 基于深度学习的新闻真伪判别工具</p>
+        <p>© 2025Clear Fake - 基于深度学习的新闻真伪判别平台</p>
       </el-footer>
     </el-container>
   </div>
