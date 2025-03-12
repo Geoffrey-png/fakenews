@@ -47,14 +47,7 @@
       <p>请确保在端口5000启动了API服务器: <code>python api/app.py</code></p>
     </el-card>
 
-    <!-- 原始响应调试卡片 -->
-    <el-card class="debug-card" v-if="rawResponse">
-      <div slot="header" class="clearfix">
-        <span>API响应数据（调试信息）</span>
-        <el-button style="float: right; padding: 3px 0" type="text" @click="rawResponse = null">关闭</el-button>
-      </div>
-      <pre>{{ JSON.stringify(rawResponse, null, 2) }}</pre>
-    </el-card>
+    <!-- 删除原始响应调试卡片 -->
 
     <result-card 
       v-if="result" 
@@ -127,7 +120,7 @@ export default {
       result: null,
       apiError: false,
       apiErrorMsg: '',
-      rawResponse: null
+      rawResponse: null // 删除这一行
     }
   },
   mounted() {
@@ -161,20 +154,20 @@ export default {
       this.$refs.form.resetFields()
       this.result = null
       this.explanation = null
-      this.rawResponse = null
+      this.rawResponse = null // 删除这一行
     },
     detectNews() {
       this.loading = true
       this.result = null
       this.explanation = null
-      this.rawResponse = null
+      this.rawResponse = null // 删除这一行
       console.log('发送检测请求，文本长度:', this.form.text.length)
       
       this.$api.predictSingle(this.form.text)
         .then(response => {
           console.log('收到预测响应:', response)
           // 保存原始响应用于调试
-          this.rawResponse = response.data
+          this.rawResponse = response.data // 删除这一行
           
           if (response.data && response.data.success) {
             try {
