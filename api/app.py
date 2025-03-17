@@ -10,12 +10,15 @@ import torch
 import logging
 from logging.handlers import RotatingFileHandler
 import sys
+import platform
+import psutil
 
 # 添加项目根目录到系统路径
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# 导入预测模型
+# 导入预测模型和解释生成器
 from api.model_loader import FakeNewsPredictor
+from api.explanation_generator import ExplanationGenerator
 
 # 创建应用实例
 app = Flask(__name__)
@@ -36,6 +39,7 @@ app.logger.info('API服务启动')
 
 # 全局变量
 predictor = None
+explanation_generator = None
 
 # 加载模型函数
 def load_model():
@@ -45,195 +49,281 @@ def load_model():
         app.logger.info('正在加载模型...')
         model_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'models', 'fake_news_bert_model_final.pth'))
         predictor = FakeNewsPredictor(model_path)
+        
+        # 模型预热，避免首次预测慢
+        app.logger.info('模型预热中...')
+        sample_texts = [
+            "北京冬奥会2022年2月4日开幕",
+            "震惊！某明星深夜现身酒吧",
+            "中国科学家在量子计算领域取得重大突破"
+        ]
+        _ = predictor.predict_batch(sample_texts)
+        app.logger.info('模型预热完成')
+        
         app.logger.info('模型加载成功')
     except Exception as e:
         app.logger.error(f'模型加载失败: {str(e)}')
         raise
 
+# 加载解释生成器函数
+def load_explanation_generator():
+    """加载解释生成器"""
+    global explanation_generator
+    try:
+        app.logger.info('正在初始化解释生成器...')
+        explanation_generator = ExplanationGenerator()
+        app.logger.info('解释生成器初始化成功')
+        # 进行测试调用
+        test_result = explanation_generator.generate_explanation(
+            "测试新闻文本",
+            {
+                "label": "虚假新闻", 
+                "confidence": {
+                    "真实新闻": 0.1,
+                    "虚假新闻": 0.9
+                }
+            }
+        )
+        if test_result:
+            app.logger.info(f"解释生成器测试成功: {test_result[:20]}...")
+        else:
+            app.logger.warning("解释生成器测试返回空结果")
+    except Exception as e:
+        app.logger.error(f'解释生成器初始化失败: {str(e)}')
+        app.logger.error('将继续运行，但无法提供假新闻解释功能')
+
 # 在请求前确保模型已加载
 @app.before_request
 def ensure_model_loaded():
-    global predictor
+    global predictor, explanation_generator
     if predictor is None:
         try:
             load_model()
         except Exception as e:
-            app.logger.error(f'请求处理前模型加载失败: {str(e)}')
+            pass  # 错误会在相应的路由处理中处理
+    
+    if explanation_generator is None:
+        try:
+            load_explanation_generator()
+        except Exception as e:
+            pass  # 解释生成器初始化失败不应阻止API继续运行
 
 # 尝试在应用启动时加载模型
 try:
     load_model()
 except Exception as e:
-    app.logger.error(f'应用启动时模型加载失败: {str(e)}')
-    pass  # 让应用继续启动，在第一次请求时再次尝试加载
+    app.logger.warning(f'应用启动时模型加载失败: {str(e)}')
+    app.logger.warning('将在第一次请求时尝试再次加载')
+
+# 尝试在应用启动时初始化解释生成器
+try:
+    load_explanation_generator()
+except Exception as e:
+    app.logger.warning(f'应用启动时解释生成器初始化失败: {str(e)}')
+    app.logger.warning('将在第一次请求时尝试再次初始化')
 
 @app.route('/health', methods=['GET'])
 def health_check():
     """健康检查端点"""
+    model_status = "已加载" if predictor is not None else "未加载"
+    explanation_status = "已初始化" if explanation_generator is not None else "未初始化"
+    
+    # 获取基本系统信息
+    try:
+        memory = psutil.virtual_memory()
+        memory_info = {
+            "total": f"{memory.total / (1024**3):.2f}GB",
+            "available": f"{memory.available / (1024**3):.2f}GB",
+            "percent_used": f"{memory.percent}%"
+        }
+    except:
+        memory_info = "无法获取内存信息"
+    
     return jsonify({
         'status': 'ok',
         'timestamp': time.time(),
-        'model_loaded': predictor is not None
+        'model_status': model_status,
+        'explanation_status': explanation_status,
+        'server_info': {
+            'platform': platform.platform(),
+            'python_version': platform.python_version(),
+            'memory': memory_info
+        }
     })
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    """
-    接收新闻文本并返回预测结果
-    请求格式: { "text": "新闻内容..." }
-    """
-    global predictor
-    
-    # 如果模型未加载，尝试加载
-    if predictor is None:
-        try:
-            load_model()
-        except Exception as e:
-            return jsonify({
-                'success': False,
-                'error': f'模型加载失败: {str(e)}'
-            }), 500
-    
-    # 获取请求数据
-    data = request.get_json(force=True, silent=True)
-    if not data:
-        return jsonify({
-            'success': False,
-            'error': '无效的请求数据，需要JSON格式'
-        }), 400
-    
-    # 获取文本
-    text = data.get('text', '')
-    if not text:
-        return jsonify({
-            'success': False,
-            'error': '请提供新闻文本'
-        }), 400
-    
+    """单文本虚假新闻检测API"""
     try:
+        # 获取请求数据
+        data = request.get_json()
+        if not data or 'text' not in data:
+            return jsonify({'success': False, 'error': '缺少文本参数'}), 400
+            
+        text = data['text']
+        if not text:
+            return jsonify({'success': False, 'error': '文本不能为空'}), 400
+            
         # 记录请求
-        app.logger.info(f'收到预测请求: {text[:100]}{"..." if len(text) > 100 else ""}')
+        app.logger.info(f'收到预测请求: {text[:100]}...')
         
-        # 执行预测
+        # 确保模型已加载
+        if predictor is None:
+            return jsonify({'success': False, 'error': '模型未加载'}), 503
+            
+        # 预测
         start_time = time.time()
-        result = predictor.predict(text)
+        prediction = predictor.predict(text)  # 现在predict方法已经优化，包含缓存机制
         end_time = time.time()
+        process_time = end_time - start_time
+        
+        # 确保prediction包含label字段
+        if 'label' not in prediction:
+            # 添加label字段
+            prediction['label'] = '真实新闻' if prediction.get('class', 1) == 0 else '虚假新闻'
+            
+        # 确保confidence字段格式正确
+        if 'confidence' not in prediction and 'probabilities' in prediction:
+            prediction['confidence'] = {
+                '真实新闻': prediction['probabilities'][0],
+                '虚假新闻': prediction['probabilities'][1]
+            }
+        
+        # 记录预测结果和处理时间
+        app.logger.info(f'预测结果: {prediction["label"]} (置信度: {prediction["probabilities"][1] if "probabilities" in prediction else 0:.4f})')
+        app.logger.info(f'处理时间: {process_time:.4f}秒')
         
         # 构建响应
-        predicted_class = result['class']
-        probabilities = result['probabilities']
-        
-        response = {
+        response_data = {
             'success': True,
-            'prediction': {
-                'label': '真实新闻' if predicted_class == 0 else '虚假新闻',
-                'label_id': predicted_class,
-                'confidence': {
-                    '真实新闻': float(probabilities[0]),
-                    '虚假新闻': float(probabilities[1])
-                }
-            },
-            'processing_time': end_time - start_time
+            'text': text,
+            'prediction': prediction,
+            'process_time': process_time
         }
         
-        # 记录结果
-        app.logger.info(f'预测结果: {response["prediction"]["label"]} ' 
-                       f'(置信度: {response["prediction"]["confidence"][response["prediction"]["label"]]:.4f})')
+        return jsonify(response_data)
         
-        return jsonify(response)
-    
     except Exception as e:
-        app.logger.error(f'预测过程中出错: {str(e)}')
-        return jsonify({
-            'success': False,
-            'error': f'预测过程中出错: {str(e)}'
-        }), 500
+        app.logger.error(f'预测失败: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/batch_predict', methods=['POST'])
 def batch_predict():
-    """
-    批量处理多个新闻文本
-    请求格式: { "texts": ["新闻1", "新闻2", ...] }
-    """
-    global predictor
-    
-    # 如果模型未加载，尝试加载
-    if predictor is None:
-        try:
-            load_model()
-        except Exception as e:
-            return jsonify({
-                'success': False,
-                'error': f'模型加载失败: {str(e)}'
-            }), 500
-    
-    # 获取请求数据
-    data = request.get_json(force=True, silent=True)
-    if not data:
-        return jsonify({
-            'success': False,
-            'error': '无效的请求数据，需要JSON格式'
-        }), 400
-    
-    # 获取文本列表
-    texts = data.get('texts', [])
-    if not texts or not isinstance(texts, list):
-        return jsonify({
-            'success': False,
-            'error': '请提供有效的新闻文本列表'
-        }), 400
-    
+    """批量虚假新闻检测API"""
     try:
-        # 记录请求
-        app.logger.info(f'收到批量预测请求: {len(texts)}篇文章')
-        
-        # 执行预测
-        start_time = time.time()
-        results = []
-        
-        for text in texts:
-            if not text:
-                results.append({
-                    'success': False,
-                    'error': '空文本'
-                })
-                continue
-                
-            result = predictor.predict(text)
-            predicted_class = result['class']
-            probabilities = result['probabilities']
+        # 获取请求数据
+        data = request.get_json()
+        if not data or 'texts' not in data:
+            return jsonify({'success': False, 'error': '缺少文本数组参数'}), 400
             
-            results.append({
-                'success': True,
-                'prediction': {
-                    'label': '真实新闻' if predicted_class == 0 else '虚假新闻',
-                    'label_id': predicted_class,
-                    'confidence': {
-                        '真实新闻': float(probabilities[0]),
-                        '虚假新闻': float(probabilities[1])
-                    }
-                }
-            })
+        texts = data['texts']
+        if not texts or not isinstance(texts, list):
+            return jsonify({'success': False, 'error': '文本数组不能为空且必须是数组'}), 400
+            
+        # 过滤无效文本
+        valid_texts = [text for text in texts if text and isinstance(text, str)]
+        if not valid_texts:
+            return jsonify({'success': False, 'error': '没有有效的文本'}), 400
+            
+        # 记录请求
+        app.logger.info(f'收到批量预测请求: {len(valid_texts)}条文本')
+        
+        # 确保模型已加载
+        if predictor is None:
+            return jsonify({'success': False, 'error': '模型未加载'}), 503
+            
+        # 批量预测
+        start_time = time.time()
+        
+        # 使用批处理功能
+        batch_predictions = predictor.predict_batch(valid_texts)
         
         end_time = time.time()
+        total_process_time = end_time - start_time
         
-        # 构建响应
-        response = {
+        # 构建结果
+        results = []
+        for i, prediction in enumerate(batch_predictions):
+            # 构建结果
+            result = {
+                'success': True,
+                'prediction': prediction,
+                'process_time': total_process_time / len(valid_texts)  # 平均处理时间
+            }
+            results.append(result)
+        
+        app.logger.info(f'批量预测完成，总耗时: {total_process_time:.4f}秒，平均每条: {total_process_time/len(valid_texts):.4f}秒')
+        
+        return jsonify({
             'success': True,
             'results': results,
-            'processing_time': end_time - start_time
-        }
+            'total_time': total_process_time
+        })
         
-        # 记录结果
-        app.logger.info(f'批量预测完成: {len(texts)}篇文章, 耗时: {end_time - start_time:.2f}秒')
-        
-        return jsonify(response)
-    
     except Exception as e:
-        app.logger.error(f'批量预测过程中出错: {str(e)}')
+        app.logger.error(f'批量预测失败: {str(e)}')
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/generate_explanation', methods=['POST'])
+def generate_explanation():
+    """生成假新闻解释的API端点"""
+    # 确保解释生成器已加载
+    if explanation_generator is None:
         return jsonify({
             'success': False,
-            'error': f'批量预测过程中出错: {str(e)}'
+            'message': '解释生成器未加载，无法提供解释服务'
+        }), 503
+    
+    # 获取请求参数
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'success': False,
+                'message': '请求参数为空'
+            }), 400
+            
+        # 提取必要参数
+        news_text = data.get('text')
+        prediction = data.get('prediction')
+        
+        if not news_text:
+            return jsonify({
+                'success': False,
+                'message': '缺少新闻文本参数'
+            }), 400
+            
+        if not prediction:
+            return jsonify({
+                'success': False,
+                'message': '缺少预测结果参数'
+            }), 400
+            
+        app.logger.info(f'收到解释生成请求: {news_text[:50]}...')
+        
+        # 调用解释生成器
+        start_time = time.time()
+        explanation = explanation_generator.generate_explanation(news_text, prediction)
+        end_time = time.time()
+        
+        app.logger.info(f'解释生成耗时: {end_time - start_time:.2f}秒')
+        
+        if explanation:
+            return jsonify({
+                'success': True,
+                'explanation': explanation
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': '无法为此新闻生成解释'
+            }), 500
+            
+    except Exception as e:
+        app.logger.error(f'解释生成出错: {str(e)}')
+        return jsonify({
+            'success': False,
+            'message': f'服务器错误: {str(e)}'
         }), 500
 
 if __name__ == '__main__':

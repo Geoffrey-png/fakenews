@@ -9,10 +9,21 @@ models/bert_local/*.safetensors
 data/*.csv
 data/*.xls
 data/*.xlsx
+.pth
 
+# 忽略编译生成的文件
+*.o
+*.so
 # 忽略运行日志
 runs/
-
+datasets/
+logs/
+checkpoint_best.pth
+checkpoint_last.pth
+checkpoint.pth
+checkpoint_best.ckpt
+*.pth
+*.ckpt
 # 忽略日志文件
 logs/
 

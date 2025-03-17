@@ -200,15 +200,6 @@ export default {
       
       this.loadingExplanation = true
       
-      // 构造请求数据
-      const requestData = {
-        text: this.form.text,
-        prediction: {
-          label: this.result.prediction.label,
-          confidence: this.result.prediction.confidence
-        }
-      }
-      
       // 调用API获取解释
       this.$api.generateExplanation(this.form.text, this.result.prediction)
         .then(response => {
