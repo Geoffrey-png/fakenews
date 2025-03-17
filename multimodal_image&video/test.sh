@@ -1,4 +1,4 @@
-EXPID=your_best_model_dir_name
+EXPID=best_model
 
 HOST='127.0.0.1'
 PORT='1'
@@ -12,6 +12,7 @@ python test.py \
 --rank 0 \
 --log_num ${EXPID} \
 --dist-url tcp://${HOST}:1003${PORT} \
+--ckpt_path './checkpoint_best.pth' \
 --token_momentum \
 --world_size $NUM_GPU \
 --test_epoch best \

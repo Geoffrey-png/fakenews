@@ -210,10 +210,18 @@ def evaluation(args, model, data_loader, tokenizer, device, config):
                  
     ##================= real/fake cls ========================## 
     y_true, y_pred = np.array(y_true), np.array(y_pred)
-    AUC_cls = roc_auc_score(y_true, y_pred)
+    
+    # 检查是否只有一个类别
+    if len(np.unique(y_true)) < 2:
+        print("Warning: Only one class present in y_true. Setting AUC to 0.")
+        AUC_cls = 0
+        EER_cls = 0
+    else:
+        AUC_cls = roc_auc_score(y_true, y_pred)
+        fpr, tpr, thresholds = roc_curve(y_true, y_pred, pos_label=1)
+        EER_cls = brentq(lambda x: 1. - x - interp1d(fpr, tpr)(x), 0., 1.)
+        
     ACC_cls = cls_acc_all / cls_nums_all
-    fpr, tpr, thresholds = roc_curve(y_true, y_pred, pos_label=1)
-    EER_cls = brentq(lambda x: 1. - x - interp1d(fpr, tpr)(x), 0., 1.)
     
     ##================= bbox cls ========================##
     IOU_score = sum(IOU_pred)/len(IOU_pred)
@@ -221,18 +229,49 @@ def evaluation(args, model, data_loader, tokenizer, device, config):
     IOU_ACC_75 = sum(IOU_75)/len(IOU_75)
     IOU_ACC_95 = sum(IOU_95)/len(IOU_95)
     # ##================= token cls========================##
-    ACC_tok = (TP_all + TN_all) / (TP_all + TN_all + FP_all + FN_all)
-    Precision_tok = TP_all / (TP_all + FP_all)
-    Recall_tok = TP_all / (TP_all + FN_all)
-    F1_tok = 2*Precision_tok*Recall_tok / (Precision_tok + Recall_tok)
+    if TP_all + TN_all + FP_all + FN_all > 0:
+        ACC_tok = (TP_all + TN_all) / (TP_all + TN_all + FP_all + FN_all)
+    else:
+        ACC_tok = 0
+        
+    if TP_all + FP_all > 0:
+        Precision_tok = TP_all / (TP_all + FP_all)
+    else:
+        Precision_tok = 0
+        
+    if TP_all + FN_all > 0:
+        Recall_tok = TP_all / (TP_all + FN_all)
+    else:
+        Recall_tok = 0
+        
+    if Precision_tok + Recall_tok > 0:
+        F1_tok = 2*Precision_tok*Recall_tok / (Precision_tok + Recall_tok)
+    else:
+        F1_tok = 0
     ##================= multi-label cls ========================## 
-    MAP = multi_label_meter.value().mean()
-    OP, OR, OF1, CP, CR, CF1 = multi_label_meter.overall()
+    try:
+        MAP = multi_label_meter.value().mean()
+        OP, OR, OF1, CP, CR, CF1 = multi_label_meter.overall()
+    except ZeroDivisionError:
+        print("Warning: Division by zero in multi-label metrics, setting values to 0")
+        MAP = torch.tensor(0.0)
+        OP, OR, OF1, CP, CR, CF1 = 0, 0, 0, 0, 0, 0
             
     for cls_idx in range(logits_multicls.shape[1]):
-        Precision_multicls = TP_all_multicls[cls_idx] / (TP_all_multicls[cls_idx] + FP_all_multicls[cls_idx])
-        Recall_multicls = TP_all_multicls[cls_idx] / (TP_all_multicls[cls_idx] + FN_all_multicls[cls_idx])
-        F1_multicls[cls_idx] = 2*Precision_multicls*Recall_multicls / (Precision_multicls + Recall_multicls)            
+        if TP_all_multicls[cls_idx] + FP_all_multicls[cls_idx] > 0:
+            Precision_multicls = TP_all_multicls[cls_idx] / (TP_all_multicls[cls_idx] + FP_all_multicls[cls_idx])
+        else:
+            Precision_multicls = 0
+            
+        if TP_all_multicls[cls_idx] + FN_all_multicls[cls_idx] > 0:
+            Recall_multicls = TP_all_multicls[cls_idx] / (TP_all_multicls[cls_idx] + FN_all_multicls[cls_idx])
+        else:
+            Recall_multicls = 0
+            
+        if Precision_multicls + Recall_multicls > 0:
+            F1_multicls[cls_idx] = 2*Precision_multicls*Recall_multicls / (Precision_multicls + Recall_multicls)
+        else:
+            F1_multicls[cls_idx] = 0
 
     return AUC_cls, ACC_cls, EER_cls, \
         MAP.item(), OP, OR, OF1, CP, CR, CF1, F1_multicls, \

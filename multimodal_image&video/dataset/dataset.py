@@ -21,10 +21,10 @@ from random import random as rand
 class DGM4_Dataset(Dataset):
     def __init__(self, config, ann_file, transform, max_words=30, is_train=True): 
         
-        self.root_dir = '../../datasets'       
+        self.root_dir = './datasets'       
         self.ann = []
         for f in ann_file:
-            self.ann += json.load(open(f,'r'))
+            self.ann += json.load(open(f, 'r', encoding='utf-8'))
         if 'dataset_division' in config:
             self.ann = self.ann[:int(len(self.ann)/config['dataset_division'])]
 
@@ -47,7 +47,7 @@ class DGM4_Dataset(Dataset):
         
         ann = self.ann[index]
         img_dir = ann['image']    
-        image_dir_all = f'{self.root_dir}/{img_dir}'
+        image_dir_all = img_dir  # 直接使用元数据中的路径
 
         try:
             image = Image.open(image_dir_all).convert('RGB')   

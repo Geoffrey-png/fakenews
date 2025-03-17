@@ -1,5 +1,5 @@
-train_file: ["../../datasets/DGM4/metadata/train.json"]
-val_file: ["../../datasets/DGM4/metadata/test.json"]     
+train_file: ["./datasets/DGM4/metadata/train.json"]
+val_file: ["./datasets/DGM4/metadata/test.json"]     
 bert_config: 'configs/config_bert.json'
 
 image_res: 256

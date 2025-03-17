@@ -209,6 +209,11 @@ class AveragePrecisionMeter(object):
             total_count += 1
             if label == 1:
                 precision_at_i += pos_count / total_count
+        
+        # 如果没有正样本，返回0
+        if pos_count == 0:
+            return 0.0
+            
         precision_at_i /= pos_count
         return precision_at_i
 
@@ -243,14 +248,39 @@ class AveragePrecisionMeter(object):
             Ng[k] = np.sum(targets == 1)
             Np[k] = np.sum(scores >= 0)
             Nc[k] = np.sum(targets * (scores >= 0))
-        Np[Np == 0] = 1
+        
+        Np[Np == 0] = 1  # 防止除以0
+        
+        # 处理没有正样本的情况
+        if np.sum(Np) == 0 or np.sum(Nc) == 0:
+            return 0, 0, 0, 0, 0, 0
+            
         OP = np.sum(Nc) / np.sum(Np)
+        
+        # 处理没有ground truth的情况
+        if np.sum(Ng) == 0:
+            return OP, 0, 0, 0, 0, 0
+            
         OR = np.sum(Nc) / np.sum(Ng)
-        OF1 = (2 * OP * OR) / (OP + OR)
+        
+        # 处理OP+OR=0的情况
+        if OP + OR == 0:
+            OF1 = 0
+        else:
+            OF1 = (2 * OP * OR) / (OP + OR)
 
+        # 处理单个类别的Np或Ng为0的情况
+        Ng[Ng == 0] = 1  # 防止除以0
+        
         CP = np.sum(Nc / Np) / n_class
         CR = np.sum(Nc / Ng) / n_class
-        CF1 = (2 * CP * CR) / (CP + CR)
+        
+        # 处理CP+CR=0的情况
+        if CP + CR == 0:
+            CF1 = 0
+        else:
+            CF1 = (2 * CP * CR) / (CP + CR)
+            
         return OP, OR, OF1, CP, CR, CF1
 
 
