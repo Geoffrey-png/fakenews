@@ -18,7 +18,7 @@ class ExplanationGenerator:
         
         # 初始化解释缓存
         self.explanation_cache = {}
-        self.max_cache_size = 1000  # 最大缓存条目数
+        self.max_cache_size = 10  # 最大缓存条目数
         self.logger.info("解释缓存已初始化，最大缓存数: 1000")
         
     def generate_explanation(self, news_text, prediction):

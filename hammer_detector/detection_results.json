@@ -1,0 +1,28 @@
+{
+  "1.jpg": {
+    "is_fake": true,
+    "forgery_score": 0.5260927081108093,
+    "manipulation_type": "Text swap",
+    "bboxes": [
+      [
+        0.23919790983200073,
+        0.24765551090240479,
+        0.7313140034675598,
+        0.7459927201271057
+      ]
+    ]
+  },
+  "2.jpg": {
+    "is_fake": true,
+    "forgery_score": 0.5279198288917542,
+    "manipulation_type": "Face attribute modification",
+    "bboxes": [
+      [
+        0.235331729054451,
+        0.2511236071586609,
+        0.733646810054779,
+        0.7535774111747742
+      ]
+    ]
+  }
+}

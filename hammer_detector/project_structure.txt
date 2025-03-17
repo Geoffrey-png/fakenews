@@ -1,0 +1,72 @@
+HAMMER多模态伪造检测工具 - 项目结构
+=================================
+
+hammer_detector/
+|
+├── models/                      # 模型定义
+|   ├── __init__.py              # 模型模块初始化
+|   ├── HAMMER.py                # HAMMER主模型
+|   ├── vit.py                   # 视觉Transformer模型
+|   ├── box_ops.py               # 边界框操作函数
+|   └── detector.py              # 检测器接口类
+|
+├── tools/                       # 工具函数
+|   ├── __init__.py              # 工具模块初始化
+|   ├── utils.py                 # 预处理和评估工具
+|   └── multilabel_metrics.py    # 多标签评估工具
+|
+├── weights/                     # 模型权重存放目录
+|   └── checkpoint_best.pth      # 预训练权重(需下载)
+|
+├── __init__.py                  # 包初始化文件
+├── config.yaml                  # 配置文件
+├── requirements.txt             # 依赖项
+├── setup.py                     # 安装脚本
+├── README.md                    # 使用说明
+├── run.py                       # 启动脚本
+├── example.py                   # 示例脚本
+├── detect_image.py              # 图像检测脚本
+├── test_install.py              # 安装测试脚本
+└── project_structure.txt        # 项目结构说明（本文件）
+
+使用说明:
+-------
+1. 安装依赖: pip install -r requirements.txt
+2. 下载预训练模型并放入weights目录
+3. 运行示例: python example.py
+4. 检测图像: python detect_image.py --image [图像路径] --text [相关文本] --visualize
+5. 测试安装: python test_install.py
+
+API用法示例:
+----------
+```python
+from models.detector import HAMMERDetector
+
+# 初始化检测器
+detector = HAMMERDetector()
+
+# 检测单个图像
+result = detector.detect(
+    image_path="path/to/image.jpg",
+    text="相关文本",
+    visualize=True
+)
+print(result)
+
+# 批量检测
+results = detector.detect_batch(
+    image_paths=["image1.jpg", "image2.jpg"],
+    texts=["文本1", "文本2"],
+    visualize=True,
+    output_dir="results"
+)
+
+# 保存结果
+detector.save_results(results, "detection_results.json")
+```
+
+注意事项:
+-------
+1. 首次运行需要下载BERT模型, 请确保网络连接
+2. GPU加速需要CUDA支持
+3. 可视化结果保存在当前目录或指定的输出目录 

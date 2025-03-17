@@ -1,0 +1,9 @@
+torch>=1.7.0
+torchvision>=0.8.0
+transformers>=4.8.1
+Pillow>=8.3.2
+numpy>=1.21.1
+matplotlib>=3.4.3
+pyyaml>=6.0
+tqdm>=4.62.0
+scikit-learn>=0.24.2 

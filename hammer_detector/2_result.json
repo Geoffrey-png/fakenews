@@ -1,0 +1,13 @@
+{
+  "is_fake": true,
+  "forgery_score": 0.5252417922019958,
+  "manipulation_type": "Face attribute modification",
+  "bboxes": [
+    [
+      0.24676914513111115,
+      0.239885151386261,
+      0.7461298108100891,
+      0.7443714141845703
+    ]
+  ]
+}
