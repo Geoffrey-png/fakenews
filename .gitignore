@@ -4,6 +4,9 @@ models/bert_local/*.bin
 models/bert_local/*.h5
 models/bert_local/*.msgpack
 models/bert_local/*.safetensors
+hammer/pretrained/*.pth
+hammer/pretrained/*.bin
+hammer_detector/pretrained/
 
 # 忽略大型数据文件
 data/*.csv
@@ -14,16 +17,21 @@ data/*.xlsx
 # 忽略编译生成的文件
 *.o
 *.so
+*.jpg
+*.png
 # 忽略运行日志
 runs/
 datasets/
 logs/
+results/
 checkpoint_best.pth
 checkpoint_last.pth
 checkpoint.pth
 checkpoint_best.ckpt
 *.pth
 *.ckpt
+*.bin
+*.pt
 # 忽略日志文件
 logs/
 
