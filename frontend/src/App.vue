@@ -5,13 +5,16 @@
         <div class="header-content">
           <div class="logo">
             <img src="./assets/logo.png" alt="Logo" v-if="false">
-            <h1>假新闻检测系统</h1>
+            <h1>面向新闻场景的伪造检测平台</h1>
           </div>
           <el-menu mode="horizontal" router :default-active="activeRoute" class="nav-menu">
             <el-menu-item index="/">首页</el-menu-item>
             <el-menu-item index="/single">单文本检测</el-menu-item>
             <el-menu-item index="/batch">批量检测</el-menu-item>
-            <el-menu-item index="/about">关于系统</el-menu-item>
+            <el-menu-item index="/image-detection">图片检测</el-menu-item>
+            <el-menu-item index="/hybrid-detection">混合检测</el-menu-item>  <!-- 新增混合检测选项 -->
+             <el-menu-item index="/video-detection">视频检测</el-menu-item>  <!-- 新增视频检测入口 -->
+            <el-menu-item index="/about" style="margin-left: auto">关于系统</el-menu-item> 
           </el-menu>
         </div>
       </el-header>
@@ -19,7 +22,7 @@
         <router-view/>
       </el-main>
       <el-footer>
-        <p>© 2023 假新闻检测系统 - 基于深度学习的新闻真伪判别工具</p>
+        <p>© 2025Clear Fake - 基于深度学习的新闻真伪判别平台</p>
       </el-footer>
     </el-container>
   </div>
@@ -94,16 +97,21 @@ body {
 .el-menu--horizontal > .el-menu-item {
   color: #fff;
   border-bottom: 2px solid transparent !important;
+  /* 新增悬停动画 */
+  transition: border-color 0.3s ease-in-out;
 }
 
+/* 新增悬停效果 */
+.el-menu--horizontal > .el-menu-item:hover {
+  border-bottom: 2px solid #fff !important;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 保持原有激活状态样式不变 */
 .el-menu--horizontal > .el-menu-item.is-active {
   color: #fff;
-  border-bottom: 2px solid #fff !important;
+  border-bottom: 2px solid #409EFF !important;  /* 将#fff改为主题蓝色 */
   background-color: rgba(255, 255, 255, 0.1);
-}
-
-.el-menu--horizontal > .el-menu-item:hover {
-  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .el-main {

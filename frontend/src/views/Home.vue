@@ -3,8 +3,10 @@
     <el-row :gutter="20">
       <el-col :span="24">
         <el-card class="welcome-card">
-          <h1>欢迎使用假新闻检测系统</h1>
-          <p>本系统使用深度学习技术检测新闻文本的真伪，帮助用户识别可能的虚假信息。</p>
+          <div style="text-align: center;">
+            <h1>欢迎使用假新闻检测系统</h1>
+            <p>本系统使用深度学习技术检测新闻文本的真伪，帮助用户识别可能的虚假信息。</p>
+          </div>
           <div class="features">
             <el-row :gutter="20">
               <el-col :xs="24" :sm="12" :md="8">
@@ -25,10 +27,54 @@
               </el-col>
               <el-col :xs="24" :sm="12" :md="8">
                 <el-card shadow="hover" class="feature-card">
+                  <i class="el-icon-picture"></i>
+                  <h3>图片检测</h3>
+                  <p>分析新闻图片的真实性及内容验证</p>
+                  <el-button 
+                    type="primary" 
+                    @click="$router.push('/image-detection')"
+                  >
+                    开始检测
+                  </el-button>
+                </el-card>
+              </el-col>
+              <el-col :xs="24" :sm="12" :md="8">
+                <el-card shadow="hover" class="feature-card">
+                  <i class="el-icon-connection"></i>
+                  <h3>混合检测</h3>
+                  <p>通过URL检测多媒体新闻的综合真实性</p>
+                  <el-button 
+                    type="primary" 
+                    @click="$router.push('/hybrid-detection')"
+                  >
+                    开始检测
+                  </el-button>
+                </el-card>
+              </el-col>
+              <el-col :xs="24" :sm="12" :md="8">
+                <el-card shadow="hover" class="feature-card">
+                  <i class="el-icon-video-camera"></i>
+                  <h3>视频检测</h3>
+                  <p>分析新闻视频的真实性及内容验证</p>
+                  <el-button 
+                    type="primary" 
+                    @click="$router.push('/video-detection')"
+                  >
+                    开始检测
+                  </el-button>
+                </el-card>
+              </el-col>
+              <el-col :xs="24" :sm="12" :md="8">
+                <el-card shadow="hover" class="feature-card">
                   <i class="el-icon-info"></i>
                   <h3>关于系统</h3>
                   <p>了解系统的技术细节和使用说明</p>
-                  <el-button type="primary" @click="$router.push('/about')">查看详情</el-button>
+                  <el-button 
+                    type="primary" 
+                    @click="$router.push('/about')"
+                  >
+                    查看详情
+                  </el-button>
                 </el-card>
               </el-col>
             </el-row>
@@ -73,7 +119,6 @@
 
 <script>
 export default {
-  name: 'Home',
   data() {
     return {
       healthStatus: null,
@@ -91,8 +136,7 @@ export default {
           this.healthStatus = response.data
         })
         .catch(error => {
-          console.error('健康检查失败:', error)
-          this.$message.error('无法连接到API服务器，请检查服务是否运行')
+          console.error('API状态检查失败:', error)
           this.healthStatus = null
         })
         .finally(() => {
@@ -109,19 +153,18 @@ export default {
   margin: 0 auto;
 }
 
-.welcome-card {
-  margin-bottom: 20px;
+.page-header {
   text-align: center;
+  margin-bottom: 20px;
 }
 
-.welcome-card h1 {
-  font-size: 2rem;
+.page-header h1 {
   color: #409EFF;
-  margin-top: 0;
+  margin-bottom: 10px;
 }
 
-.features {
-  margin-top: 30px;
+.page-header p {
+  color: #606266;
 }
 
 .feature-card {
@@ -157,4 +200,4 @@ export default {
   font-size: 0.8rem;
   margin-top: 10px;
 }
-</style> 
+</style>

@@ -40,7 +40,8 @@
           </div>
         </el-tab-pane>
         
-        <el-tab-pane label="技术架构">
+        <!-- 删除技术架构标签页 -->
+        <!-- <el-tab-pane label="技术架构">
           <div class="tab-content">
             <h2>系统架构</h2>
             <p>假新闻检测系统采用前后端分离的架构设计，前端使用Vue.js和Element UI构建用户界面，后端基于Flask提供REST API服务。</p>
@@ -70,7 +71,7 @@
             <h3>模型简介</h3>
             <p>系统的核心是一个基于BERT的深度学习模型，通过对大量真实和虚假新闻的学习，能够识别新闻文本中的真实性特征。模型经过调优，在测试集上达到了较高的准确率。</p>
           </div>
-        </el-tab-pane>
+        </el-tab-pane> -->
         
         <el-tab-pane label="使用指南">
           <div class="tab-content">
@@ -217,6 +218,8 @@ export default {
   color: #606266;
 }
 
+/* 删除以下技术架构相关样式 */
+/*
 .architecture {
   display: flex;
   flex-wrap: wrap;
@@ -247,6 +250,7 @@ export default {
   margin-bottom: 8px;
   color: #606266;
 }
+*/
 
 .guide-section, .notice-section {
   margin-bottom: 30px;
