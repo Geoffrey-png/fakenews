@@ -1,4 +1,4 @@
-# 忽略大型模型文件
+# 模型文件
 models/*.pth
 models/bert_local/*.bin
 models/bert_local/*.h5
@@ -7,50 +7,124 @@ models/bert_local/*.safetensors
 hammer/pretrained/*.pth
 hammer/pretrained/*.bin
 hammer_detector/pretrained/
-
-# 忽略大型数据文件
-data/*.csv
-data/*.xls
-data/*.xlsx
-.pth
-
-# 忽略编译生成的文件
-*.o
-*.so
-*.jpg
-*.png
-# 忽略运行日志
-runs/
-datasets/
-logs/
-results/
-checkpoint_best.pth
-checkpoint_last.pth
-checkpoint.pth
-checkpoint_best.ckpt
 *.pth
 *.ckpt
 *.bin
 *.pt
-# 忽略日志文件
-logs/
+*.h5
+*.onnx
+*.tflite
+*.pb
 
-# 忽略Python缓存文件
+# 数据文件
+data/*.csv
+data/*.xls
+data/*.xlsx
+*.csv
+*.xls
+*.xlsx
+*.json
+*.npy
+*.npz
+
+# 图像和媒体文件
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.tif
+*.tiff
+*.mp4
+*.avi
+*.mov
+
+# 编译生成的文件
+*.o
+*.so
+*.dll
+*.exe
+*.out
+*.a
+*.lib
+
+# 运行时生成的文件和目录
+runs/
+datasets/
+logs/
+results/
+checkpoint*/
+tmp/
+temp/
+.cache/
+.pytest_cache/
+
+# 上传和生成的文件目录
+api/static/uploads/
+api/static/visualizations/
+api/static/temp/
+frontend/dist/
+frontend/build/
+static/
+uploads/
+generated/
+
+# Python缓存文件
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
+.Python
+.coverage
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
 
-# 忽略虚拟环境
+# 虚拟环境
 venv/
 env/
 ENV/
+.env
+.venv
+env/
+virtualenv/
+.python-version
 
-# 忽略IDE配置
+# IDE配置
 .idea/
 .vscode/
 *.swp
 *.swo
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.settings/
+.ipynb_checkpoints/
+*.iml
 
-# 忽略系统文件
+# 系统文件
 .DS_Store
-Thumbs.db 
+Thumbs.db
+desktop.ini
+*.lnk
+.directory
+
+# 包管理器
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+package-lock.json
+.pnpm-debug.log
+
+# 其他临时文件
+*.log
+*.bak
+*.tmp
+*.temp
+*~
+.\#*
+\#*\#
+core.* 
