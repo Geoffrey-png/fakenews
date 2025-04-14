@@ -157,15 +157,6 @@ npm run build
 | `/detect/image` | POST | Image detection interface |
 | `/generate_explanation` | POST | Fake news explanation generation interface |
 
-## 📊 Examples
-
-### Text Detection Results
-
-![Text Detection Example](Figure_1.png)
-
-### Image Detection Results
-
-![Image Detection Example](Figure_2.png)
 
 ## 👨‍💻 Developer Guide
 

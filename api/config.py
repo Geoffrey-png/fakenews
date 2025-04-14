@@ -31,7 +31,7 @@ class Config:
     # 文件上传配置
     UPLOAD_FOLDER = 'uploads'
     MAX_CONTENT_LENGTH = 500 * 1024 * 1024  # 500MB
-    ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'avi', 'mov'}
+    ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'avi', 'mov'}张图片。
     
     # CORS配置
     CORS_HEADERS = {
