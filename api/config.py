@@ -25,4 +25,21 @@ CORS_ORIGINS = os.environ.get('CORS_ORIGINS', '*').split(',')
 
 # 模型预测配置
 MAX_SEQUENCE_LENGTH = int(os.environ.get('MAX_SEQUENCE_LENGTH', 128))
-BATCH_SIZE = int(os.environ.get('BATCH_SIZE', 8)) 
+BATCH_SIZE = int(os.environ.get('BATCH_SIZE', 8))
+
+class Config:
+    # 文件上传配置
+    UPLOAD_FOLDER = 'uploads'
+    MAX_CONTENT_LENGTH = 500 * 1024 * 1024  # 500MB
+    ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'avi', 'mov'}
+    
+    # CORS配置
+    CORS_HEADERS = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
+    }
+    
+    # 视频处理配置
+    VIDEO_CHUNK_SIZE = 8192  # 8KB chunks for streaming
+    VIDEO_PREVIEW_QUALITY = 0.8

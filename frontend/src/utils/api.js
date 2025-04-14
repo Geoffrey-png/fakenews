@@ -41,6 +41,18 @@ function ensureNumber(value, defaultValue = 0) {
   return isNaN(num) ? defaultValue : num;
 }
 
+// 示例图片数据（模拟从服务器获取）
+const sampleImages = [
+  '/image/1.jpg',
+  '/image/2.jpg',
+  '/image/3.jpg',
+  '/image/4.jpg',
+  '/image/5.jpg',
+  '/image/6.jpg',
+  '/image/7.jpg',
+  '/image/8.jpg'
+];
+
 // API服务
 const apiService = {
   // 健康检查
@@ -61,6 +73,108 @@ const apiService = {
   // 生成假新闻解释
   generateExplanation(text, prediction) {
     return api.post('/generate_explanation', { text, prediction })
+  },
+  
+  // 混合内容检测函数 (URL检测)
+  checkHybrid(url) {
+    // 目前暂时返回模拟数据
+    // 真实实现应该调用后端API
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // 随机决定是真实还是虚假新闻
+        const isFake = Math.random() > 0.5;
+        resolve({
+          data: {
+            is_fake: isFake,
+            // 调整置信度范围：
+            // 虚假新闻：85%-98% (更明显的虚假特征)
+            // 真实新闻：80%-95% (较高的真实性)
+            confidence: isFake ? Math.random() * 0.13 + 0.85 : Math.random() * 0.15 + 0.80,
+            description: isFake ? 
+              '系统检测到此内容包含多个可疑特征，多处细节不符合常理，可能为人工合成或刻意篡改的虚假内容。' :
+              '系统未检测到明显造假特征，内容可信度较高，符合事实逻辑和常识判断。'
+          }
+        });
+      }, 2000); // 模拟2秒延迟
+    });
+  },
+  
+  // 视频分析功能
+  analyzeVideo(videoFile) {
+    // 直接返回所有可用的图片
+    return new Promise((resolve) => {
+      // 模拟处理延迟
+      setTimeout(() => {
+        // 检查图片是否存在
+        const checkImage = (path) => {
+          return new Promise((resolveCheck) => {
+            const img = new Image();
+            img.onload = () => resolveCheck(true);
+            img.onerror = () => resolveCheck(false);
+            img.src = path;
+          });
+        };
+
+        // 查找实际存在的图片（异步操作）
+        Promise.all(sampleImages.map(path => checkImage(path)))
+          .then(results => {
+            // 过滤出存在的图片
+            const availableImages = sampleImages.filter((_, index) => results[index]);
+            
+            // 如果没有找到任何图片，使用默认文本提示
+            if (availableImages.length === 0) {
+              resolve({
+                data: {
+                  success: false,
+                  error: "未找到任何图片，请确保在frontend/public/image目录中放置了1.jpg、2.jpg等命名的图片",
+                  frames: []
+                }
+              });
+              return;
+            }
+            
+            // 为每个帧添加检测结果
+            const framesWithResults = availableImages.map((frame, index) => {
+              return {
+                frame_path: frame,
+                frame_number: index + 1,
+                is_fake: true,
+                confidence: Math.random() * 0.13 + 0.85,
+                manipulation_type: ['内容篡改', '面部替换', '背景修改', '对象插入'][index % 4]
+              };
+            });
+            
+            resolve({
+              data: {
+                success: true,
+                frames: framesWithResults,
+                video_name: videoFile ? videoFile.name : "样本视频",
+                total_frames: framesWithResults.length,
+                processing_time: 2.5, // 固定处理时间
+                summary: `视频分析完成，找到${framesWithResults.length}个可疑帧。`
+              }
+            });
+          });
+      }, 1500); // 模拟1.5秒处理时间
+    });
+  },
+  
+  // 获取视频帧图片
+  getVideoFrames() {
+    // 实际应该从后端API获取，这里直接返回示例数据
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          data: {
+            success: true,
+            frames: sampleImages.map((path, index) => ({
+              path,
+              frame_number: index + 1
+            }))
+          }
+        });
+      }, 1000);
+    });
   },
   
   // 转换单文本响应为标准格式

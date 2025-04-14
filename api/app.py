@@ -4,7 +4,7 @@
 print("开始执行API服务器脚本...")
 
 try:
-    from flask import Flask, request, jsonify, send_from_directory
+    from flask import Flask, request, jsonify, send_from_directory, url_for
     from flask_cors import CORS
     import time
     import os
@@ -48,6 +48,7 @@ try:
     UPLOADS_FOLDER = os.path.join(RESULTS_FOLDER, 'uploads')
     VISUALIZATIONS_FOLDER = os.path.join(RESULTS_FOLDER, 'visualizations')
     app.config['RESULTS_FOLDER'] = RESULTS_FOLDER
+    app.config['UPLOAD_FOLDER'] = UPLOADS_FOLDER
 
     # 确保目录存在
     for folder in [RESULTS_FOLDER, UPLOADS_FOLDER, VISUALIZATIONS_FOLDER]:
@@ -440,6 +441,41 @@ try:
                 'success': False
             }), 500
 
+    # 视频处理API接口
+    @app.route('/video', methods=['POST'])
+    def upload_video():
+        if 'video' not in request.files:
+            return jsonify({'error': '没有上传文件'}), 400
+            
+        video = request.files['video']
+        if not video.filename:
+            return jsonify({'error': '未选择文件'}), 400
+            
+        if not allowed_video_file(video.filename):
+            return jsonify({'error': '不支持的文件格式'}), 400
+            
+        filename = secure_filename(video.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        
+        try:
+            os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+            video.save(filepath)
+            video_url = url_for('serve_video', filename=filename, _external=True)
+            return jsonify({
+                'message': '上传成功',
+                'video_url': video_url
+            })
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
+    @app.route('/video/<filename>')
+    def serve_video(filename):
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+    def allowed_video_file(filename):
+        return '.' in filename and \
+               filename.rsplit('.', 1)[1].lower() in Config.ALLOWED_VIDEO_EXTENSIONS
+
     # 静态文件服务
     @app.route('/static/visualizations/<path:filename>')
     def serve_visualization(filename):
@@ -483,4 +519,4 @@ try:
 except Exception as e:
     print(f"API服务器脚本执行时发生错误: {str(e)}")
     import traceback
-    traceback.print_exc() 
+    traceback.print_exc()

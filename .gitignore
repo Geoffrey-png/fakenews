@@ -127,4 +127,7 @@ package-lock.json
 *~
 .\#*
 \#*\#
-core.* 
+core.*
+
+# BERT模型文件
+hammer_detector/pretrained/bert/ 

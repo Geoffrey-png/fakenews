@@ -224,7 +224,7 @@ export default {
       formData.append('image', this.imageFile)
       
       // 直接使用完整URL，不使用拼接
-      const url = 'http://localhost:5000/detect/image';
+      const url = 'http://10.101.64.214:5000/detect/image';
       console.log('发送请求到:', url);
       
       // 输出环境变量和配置信息
@@ -250,7 +250,7 @@ export default {
             manipulationType: data.manipulation_type,
             fakeRegion: data.fake_region,
             visualizationUrl: data.visualization_url 
-              ? `http://localhost:5000${data.visualization_url}` 
+              ? `http://10.101.64.214:5000${data.visualization_url}` 
               : null
           }
           console.log('处理后的结果:', this.result);
